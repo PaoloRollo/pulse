@@ -3,7 +3,7 @@ import { encodeFunctionData, formatUnits, parseUnits, createPublicClient, http, 
 import { Chain, WalletClient } from "wagmi"
 import { baseGoerli } from 'viem/chains'
 import { PULSE_TOKEN_ABI } from '../utils/pulseTokenABI'
-import {  EAS_ABI } from '../utils/EAS'
+import {  EAS_ABI } from '../utils/EASABI'
 
 import { privateKeyToAccount } from 'viem/accounts' 
 
