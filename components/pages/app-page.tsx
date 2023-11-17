@@ -20,6 +20,9 @@ import {
   Tooltip,
 } from "@ensdomains/thorin";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { CONSTANTS, PushAPI } from "@pushprotocol/restapi";
+import { Channel } from "@pushprotocol/restapi/src/lib/pushNotification/channel";
+import { BellIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -50,11 +53,11 @@ const db = [
 
 export default function AppPage() {
   const router = useRouter();
-  const { ready, authenticated, user, logout, connectWallet, unlinkWallet } =
-    usePrivy();
+  const { ready, authenticated, user, logout, connectWallet } = usePrivy();
   const {
     smartAccountAddress,
     smartAccountProvider,
+    smartAccountSigner,
     sendSponsoredUserOperation,
     eoa,
   } = useSmartAccount();
@@ -63,6 +66,8 @@ export default function AppPage() {
   const [currentIndex, setCurrentIndex] = useState(db.length - 1);
   const [lastDirection, setLastDirection] = useState();
   const [showToast, setShowToast] = useState<boolean>(false);
+  const [pushUser, setPushUser] = useState<PushAPI | null>(null);
+  const [pushChannel, setPushChannel] = useState<Channel | null>(null);
   // used for outOfFrame closure
   const currentIndexRef = useRef(currentIndex);
   const [showModal, setShowModal] = useState<boolean>(true);
@@ -128,6 +133,12 @@ export default function AppPage() {
     }
   }, [wallets]);
 
+  useEffect(() => {
+    if (smartAccountSigner) {
+      fetchNotificationStatus();
+    }
+  }, [smartAccountSigner]);
+
   const fetchConnectedWallet = async () => {
     const wallet = wallets.find(
       (wallet) => wallet.connectorType !== "embedded"
@@ -146,9 +157,34 @@ export default function AppPage() {
     }
   };
 
-  const isLoading = !smartAccountAddress || !smartAccountProvider;
+  const fetchNotificationStatus = async () => {
+    try {
+      const pushAPIUser = await PushAPI.initialize(smartAccountSigner?.inner, {
+        env: CONSTANTS.ENV.STAGING,
+      });
+      setPushUser(pushAPIUser);
+      const subscriptions = await pushAPIUser.notification.subscriptions();
+      console.log(subscriptions);
+      const channels = subscriptions.filter((subscription: any) => {
+        return subscription.channel === "pulse-test-channel";
+      });
+      console.log(channels);
+      if (channels.length === 0) {
+        console.log("create channel");
+        const newChannel = await pushAPIUser.channel.create({
+          name: "pulse-test-channel",
+          description: "Pulse Push Protocol notification channel",
+          url: "https://pulse-indol.vercel.app",
+          icon: "https://pulse-indol.vercel.app/favicon.ico",
+        });
+        console.log(newChannel);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  console.log(isLoading);
+  const isLoading = !smartAccountAddress || !smartAccountProvider;
 
   if (isLoading) {
     return (
@@ -191,10 +227,6 @@ export default function AppPage() {
           <Profile
             address={smartAccountAddress}
             className="cursor-pointer hover:-translate-y-0.5 transition-transform"
-            // onClick={() => {
-            //   router.push(`/app/profile/${smartAccountAddress}`);
-            // }}
-            // ensName="frontend.ens.eth"
             dropdownItems={[
               {
                 label: "Profile",
@@ -210,6 +242,13 @@ export default function AppPage() {
               },
             ]}
           />
+          <Button
+            onClick={() => {
+              // toggleNotifications();
+            }}
+          >
+            <BellIcon />
+          </Button>
         </div>
         {db.map((character, index) => (
           <TinderCard
