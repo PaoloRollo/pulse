@@ -1,0 +1,44 @@
+{
+  "name": "pulse",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "patch-package"
+  },
+  "dependencies": {
+    "@alchemy/aa-accounts": "^1.1.0",
+    "@alchemy/aa-alchemy": "^1.1.0",
+    "@alchemy/aa-core": "^1.1.0",
+    "@ensdomains/thorin": "^0.6.42",
+    "@memester-xyz/lens-use": "^0.1.1",
+    "@privy-io/react-auth": "^1.47.2",
+    "@privy-io/wagmi-connector": "^0.1.6",
+    "@react-spring/web": "9.5.5",
+    "alchemy-sdk": "^3.0.0",
+    "next": "13.4.12",
+    "patch-package": "^8.0.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-tinder-card": "^1.6.4",
+    "react-transition-state": "^2.1.1",
+    "styled-components": "^6.1.1",
+    "usehooks-ts": "^2.9.1",
+    "viem": "^1.19.3",
+    "wagmi": "^1.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.2",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  }
+}
