@@ -1,18 +1,25 @@
 "use client";
 import { useSmartAccount } from "@/hooks/smart-account-context";
+import { publicClient } from "@/lib/viem-client";
 import {
   Button,
   Card,
   CheckSVG,
+  CounterClockwiseArrowSVG,
   CrossSVG,
+  Dialog,
   ExitSVG,
   FlameSVG,
+  HeartSVG,
+  Input,
   LeftArrowSVG,
+  PersonSVG,
   Profile,
   Skeleton,
   SkeletonGroup,
+  Tooltip,
 } from "@ensdomains/thorin";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -43,17 +50,24 @@ const db = [
 
 export default function AppPage() {
   const router = useRouter();
-  const { ready, authenticated, user, logout } = usePrivy();
+  const { ready, authenticated, user, logout, connectWallet, unlinkWallet } =
+    usePrivy();
   const {
     smartAccountAddress,
     smartAccountProvider,
     sendSponsoredUserOperation,
     eoa,
   } = useSmartAccount();
+  const { wallets } = useWallets();
+  const [connectedWallet, setConnectedWallet] = useState<any>(null);
   const [currentIndex, setCurrentIndex] = useState(db.length - 1);
   const [lastDirection, setLastDirection] = useState();
+  const [showToast, setShowToast] = useState<boolean>(false);
   // used for outOfFrame closure
   const currentIndexRef = useRef(currentIndex);
+  const [showModal, setShowModal] = useState<boolean>(true);
+  const [subdomain, setSubdomain] = useState<string>("");
+  const [currentStep, setCurrentStep] = useState<number>(0);
 
   const childRefs = useMemo<any[]>(
     () =>
@@ -108,7 +122,33 @@ export default function AppPage() {
     }
   }, [ready, authenticated, router]);
 
+  useEffect(() => {
+    if (wallets && wallets.length > 0) {
+      fetchConnectedWallet();
+    }
+  }, [wallets]);
+
+  const fetchConnectedWallet = async () => {
+    const wallet = wallets.find(
+      (wallet) => wallet.connectorType !== "embedded"
+    );
+    if (wallet) {
+      const ens = await publicClient.getEnsName({
+        address: wallet.address as `0x${string}`,
+      });
+      setConnectedWallet({
+        ...wallet,
+        ens,
+      });
+      if (ens) {
+        setSubdomain(ens.split(".")[0]);
+      }
+    }
+  };
+
   const isLoading = !smartAccountAddress || !smartAccountProvider;
+
+  console.log(isLoading);
 
   if (isLoading) {
     return (
@@ -151,18 +191,25 @@ export default function AppPage() {
           <Profile
             address={smartAccountAddress}
             className="cursor-pointer hover:-translate-y-0.5 transition-transform"
-            onClick={() => {
-              router.push(`/app/profile/${smartAccountAddress}`);
-            }}
+            // onClick={() => {
+            //   router.push(`/app/profile/${smartAccountAddress}`);
+            // }}
             // ensName="frontend.ens.eth"
+            dropdownItems={[
+              {
+                label: "Profile",
+                onClick: () =>
+                  router.push(`/app/profile/${smartAccountAddress}`),
+                icon: <PersonSVG />,
+              },
+              {
+                label: "Logout",
+                onClick: () => logout(),
+                icon: <ExitSVG />,
+                color: "red",
+              },
+            ]}
           />
-          <Button
-            colorStyle="redSecondary"
-            shape="circle"
-            onClick={() => logout()}
-          >
-            <ExitSVG />
-          </Button>
         </div>
         {db.map((character, index) => (
           <TinderCard
@@ -170,6 +217,7 @@ export default function AppPage() {
             className="swipe"
             key={character.name}
             preventSwipe={["down", "up"]}
+            swipeRequirementType="position"
             onSwipe={(dir) => swiped(dir, character.name, index)}
             onCardLeftScreen={() => outOfFrame(character.name, index)}
           >
@@ -186,39 +234,138 @@ export default function AppPage() {
           </TinderCard>
         ))}
         <div className="flex items-center absolute bottom-8 space-x-4">
-          <Button
-            disabled={!canGoBack}
-            onClick={() => goBack()}
-            shape="circle"
-            colorStyle="yellowPrimary"
+          <Tooltip
+            additionalGap={0}
+            content={<div className="pr-1">Go back</div>}
+            mobilePlacement="top"
+            placement="top"
+            width={"auto"}
           >
-            <LeftArrowSVG />
-          </Button>
-          <Button
-            onClick={() => swipe("left")}
-            shape="circle"
-            disabled={!canSwipe}
-            colorStyle="redPrimary"
+            <Button
+              disabled={!canGoBack}
+              onClick={() => goBack()}
+              shape="circle"
+              colorStyle="yellowPrimary"
+            >
+              <CounterClockwiseArrowSVG />
+            </Button>
+          </Tooltip>
+          <Tooltip
+            additionalGap={0}
+            content={<div className="pr-1">Skip content</div>}
+            mobilePlacement="top"
+            placement="top"
+            width={"auto"}
           >
-            <CrossSVG />
-          </Button>
-          <Button
-            onClick={() => swipe("right")}
-            shape="circle"
-            disabled={!canSwipe}
-            colorStyle="greenPrimary"
+            <Button
+              onClick={() => swipe("left")}
+              shape="circle"
+              disabled={!canSwipe}
+              colorStyle="redPrimary"
+            >
+              <CrossSVG />
+            </Button>
+          </Tooltip>
+          <Tooltip
+            additionalGap={0}
+            content={<div className="pr-1">Like content</div>}
+            mobilePlacement="top"
+            placement="top"
+            width={"auto"}
           >
-            <CheckSVG />
-          </Button>
-          <Button
-            onClick={() => swipe("up")}
-            disabled={!canSwipe}
-            shape="circle"
+            <Button
+              onClick={() => swipe("right")}
+              shape="circle"
+              disabled={!canSwipe}
+              colorStyle="greenPrimary"
+            >
+              <CheckSVG />
+            </Button>
+          </Tooltip>
+          <Tooltip
+            additionalGap={0}
+            content={<div className="pr-1">Love!</div>}
+            mobilePlacement="top"
+            placement="top"
+            width={"auto"}
           >
-            <FlameSVG />
-          </Button>
+            <Button
+              onClick={() => swipe("up")}
+              disabled={!canSwipe}
+              shape="circle"
+            >
+              <HeartSVG className="pr-0.5" />
+            </Button>
+          </Tooltip>
         </div>
       </div>
+      <Dialog
+        open={showModal}
+        variant="actionable"
+        currentStep={currentStep}
+        stepCount={2}
+        onDismiss={() => {
+          setShowModal(true);
+        }}
+      >
+        {currentStep === 0 && (
+          <>
+            <Dialog.Heading title="Add an existing wallet" />
+            <div className="w-full md:w-[500px]">
+              <p className="mb-4 text-center">
+                We will use the social graph from this wallet to ensure you a
+                more customized posts feed.
+              </p>
+              {!connectedWallet ? (
+                <Button
+                  colorStyle="blueSecondary"
+                  onClick={() => connectWallet()}
+                >
+                  Connect Wallet
+                </Button>
+              ) : (
+                <Button colorStyle="blueSecondary">
+                  {connectedWallet.ens ||
+                    connectedWallet.address.slice(0, 8) +
+                      "..." +
+                      connectedWallet.address.slice(-8)}
+                </Button>
+              )}
+            </div>
+            <Dialog.Footer
+              trailing={
+                <Button onClick={() => setCurrentStep(1)}>Continue</Button>
+              }
+            />
+          </>
+        )}
+        {currentStep === 1 && (
+          <>
+            <Dialog.Heading title="Select your pulse.eth subdomain" />
+            <div className="w-full md:w-[500px]">
+              <Input
+                label="Your subdomain"
+                placeholder="username"
+                suffix=".pulse.eth"
+                value={subdomain}
+                onChange={(e) => setSubdomain(e.target.value)}
+              />
+            </div>
+            <Dialog.Footer
+              leading={<Button onClick={() => setCurrentStep(0)}>Back</Button>}
+              trailing={
+                <Button
+                  disabled={!subdomain}
+                  onClick={() => setShowModal(false)}
+                  colorStyle="greenPrimary"
+                >
+                  Confirm
+                </Button>
+              }
+            />
+          </>
+        )}
+      </Dialog>
     </>
   );
 }
