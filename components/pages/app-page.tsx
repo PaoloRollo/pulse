@@ -2,6 +2,7 @@
 import { useSmartAccount } from "@/hooks/smart-account-context";
 import { publicClient } from "@/lib/viem-client";
 import {
+  AeroplaneSVG,
   Button,
   Card,
   CheckSVG,
@@ -21,13 +22,13 @@ import {
 } from "@ensdomains/thorin";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { CONSTANTS, PushAPI } from "@pushprotocol/restapi";
-import { Channel } from "@pushprotocol/restapi/src/lib/pushNotification/channel";
 import { PushStream } from "@pushprotocol/restapi/src/lib/pushstream/PushStream";
 import { BellIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import TinderCard from "react-tinder-card";
+import localforage from "localforage";
 
 const db = [
   {
@@ -66,11 +67,11 @@ export default function AppPage() {
   const [connectedWallet, setConnectedWallet] = useState<any>(null);
   const [currentIndex, setCurrentIndex] = useState(db.length - 1);
   const [lastDirection, setLastDirection] = useState();
-  const [showToast, setShowToast] = useState<boolean>(false);
   const [pushUser, setPushUser] = useState<PushAPI | null>(null);
-  const [pushChannel, setPushChannel] = useState<Channel | null>(null);
   const [pushStream, setPushStream] = useState<PushStream | null>(null);
-  // used for outOfFrame closure
+  const [pushStreamConnected, setPushStreamConnected] =
+    useState<boolean>(false);
+  const [permission, setPermission] = useState<boolean>(false);
   const currentIndexRef = useRef(currentIndex);
   const [showModal, setShowModal] = useState<boolean>(true);
   const [subdomain, setSubdomain] = useState<string>("");
@@ -122,6 +123,13 @@ export default function AppPage() {
     await childRefs[newIndex].current.restoreCard();
   };
 
+  // useEffect(() => {
+  //   const notificationPermission = Notification.permission === "granted";
+  //   setPermission(notificationPermission);
+  //   console.log(notificationPermission);
+  //   if (notificationPermission) subscribeToNotifications();
+  // }, []);
+
   // If the user is not authenticated, redirect them back to the landing page
   useEffect(() => {
     if (ready && !authenticated) {
@@ -137,27 +145,13 @@ export default function AppPage() {
 
   useEffect(() => {
     if (smartAccountSigner) {
-      fetchNotificationStatus();
+      fetchNotificationStatus().then(() => {
+        const notificationPermission = Notification.permission === "granted";
+        setPermission(notificationPermission);
+        if (notificationPermission) subscribeToNotifications();
+      });
     }
   }, [smartAccountSigner]);
-
-  useEffect(() => {
-    if (pushStream) {
-      pushStream.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
-        console.log(data);
-      });
-
-      pushStream.on(CONSTANTS.STREAM.CONNECT, () => {
-        console.log("CONNECTED");
-      });
-
-      pushStream.on(CONSTANTS.STREAM.DISCONNECT, () => {
-        console.log("DISCONNECTED");
-      });
-
-      pushStream.connect();
-    }
-  }, [pushStream]);
 
   const fetchConnectedWallet = async () => {
     const wallet = wallets.find(
@@ -173,6 +167,48 @@ export default function AppPage() {
       });
       if (ens) {
         setSubdomain(ens.split(".")[0]);
+      }
+    }
+  };
+
+  const subscribeToNotifications = async () => {
+    if (pushStream) {
+      let notificationPermission = permission;
+      if (!notificationPermission) {
+        const result = await Notification.requestPermission();
+        notificationPermission = result === "granted";
+      }
+      if (notificationPermission) {
+        const token = await localforage.getItem("pulse_fcm_token");
+
+        // if (!token) {
+        //   const messaging = getMessaging(firebaseApp);
+        //   const fcmToken = getToken(messaging, {
+        //     vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY as string,
+        //   });
+        //   localforage.setItem("pulse_fcm_token", fcmToken);
+        // }
+
+        pushStream.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
+          console.log(data);
+          const { body, title } = data.message.notification;
+          console.log(body, title);
+          const notification = new Notification(title, {
+            body: body,
+          });
+        });
+
+        pushStream.on(CONSTANTS.STREAM.CONNECT, () => {
+          console.log("CONNECTED");
+        });
+
+        pushStream.on(CONSTANTS.STREAM.DISCONNECT, () => {
+          console.log("DISCONNECTED");
+        });
+
+        await pushStream.connect();
+
+        setPushStreamConnected(true);
       }
     }
   };
@@ -263,6 +299,11 @@ export default function AppPage() {
                 icon: <PersonSVG />,
               },
               {
+                label: "Chats",
+                onClick: () => router.push(`/app/chats`),
+                icon: <AeroplaneSVG />,
+              },
+              {
                 label: "Logout",
                 onClick: () => logout(),
                 icon: <ExitSVG />,
@@ -271,9 +312,12 @@ export default function AppPage() {
             ]}
           />
           <Button
+            disabled={!pushStream}
+            shape="circle"
             onClick={() => {
-              // toggleNotifications();
+              !pushStreamConnected && subscribeToNotifications();
             }}
+            colorStyle={!pushStreamConnected ? "bluePrimary" : "greenPrimary"}
           >
             <BellIcon />
           </Button>
