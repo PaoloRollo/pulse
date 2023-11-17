@@ -50,7 +50,8 @@ const db = [
 
 export default function AppPage() {
   const router = useRouter();
-  const { ready, authenticated, user, logout, connectWallet } = usePrivy();
+  const { ready, authenticated, user, logout, connectWallet, unlinkWallet } =
+    usePrivy();
   const {
     smartAccountAddress,
     smartAccountProvider,
@@ -323,10 +324,7 @@ export default function AppPage() {
                   Connect Wallet
                 </Button>
               ) : (
-                <Button
-                  colorStyle="blueSecondary"
-                  // onClick={() => connectWallet()}
-                >
+                <Button colorStyle="blueSecondary">
                   {connectedWallet.ens ||
                     connectedWallet.address.slice(0, 8) +
                       "..." +
