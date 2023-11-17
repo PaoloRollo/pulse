@@ -33,32 +33,3 @@ async function mintNewPulseToken(account: string, id: number, amount: number, ne
         console.error('Error calling mintAndSetUri:', error);
     }
 }
-
-async function mintExistingPulseToken(account: string, id: number, amount: number, EASData: string) {
-    try {
-        const mintPulseToken = await client.writeContract({
-            address: '0x21e05e48ba21bf38464f70c0618cececfc4c6310',
-            abi: PULSE_TOKEN_ABI,
-            functionName: 'mint',
-            args: [account, id, amount, "0x", EASData],
-        });
-
-    } catch (error) {
-        console.error('Error calling mintAndSetUri:', error);
-    }
-}
-/*
-async function createUsersAttestation() {
-    try {
-        const generateAttestation = await client.writeContract({
-            address: '0x4200000000000000000000000000000000000021',
-            abi: EAS_ABI,
-            functionName: 'attest',
-            args: [account, id, amount, "0x", EASData],
-        });
-
-    } catch (error) {
-        console.error('Error calling mintAndSetUri:', error);
-    }
-
-}*/
