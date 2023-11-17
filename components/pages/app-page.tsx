@@ -22,6 +22,7 @@ import {
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { CONSTANTS, PushAPI } from "@pushprotocol/restapi";
 import { Channel } from "@pushprotocol/restapi/src/lib/pushNotification/channel";
+import { PushStream } from "@pushprotocol/restapi/src/lib/pushstream/PushStream";
 import { BellIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -68,6 +69,7 @@ export default function AppPage() {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [pushUser, setPushUser] = useState<PushAPI | null>(null);
   const [pushChannel, setPushChannel] = useState<Channel | null>(null);
+  const [pushStream, setPushStream] = useState<PushStream | null>(null);
   // used for outOfFrame closure
   const currentIndexRef = useRef(currentIndex);
   const [showModal, setShowModal] = useState<boolean>(true);
@@ -139,6 +141,24 @@ export default function AppPage() {
     }
   }, [smartAccountSigner]);
 
+  useEffect(() => {
+    if (pushStream) {
+      pushStream.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
+        console.log(data);
+      });
+
+      pushStream.on(CONSTANTS.STREAM.CONNECT, () => {
+        console.log("CONNECTED");
+      });
+
+      pushStream.on(CONSTANTS.STREAM.DISCONNECT, () => {
+        console.log("DISCONNECTED");
+      });
+
+      pushStream.connect();
+    }
+  }, [pushStream]);
+
   const fetchConnectedWallet = async () => {
     const wallet = wallets.find(
       (wallet) => wallet.connectorType !== "embedded"
@@ -165,20 +185,28 @@ export default function AppPage() {
       setPushUser(pushAPIUser);
       const subscriptions = await pushAPIUser.notification.subscriptions();
       console.log(subscriptions);
-      const channels = subscriptions.filter((subscription: any) => {
-        return subscription.channel === "pulse-test-channel";
+      const channel = subscriptions.find((subscription: any) => {
+        return (
+          subscription.channel === process.env.NEXT_PUBLIC_CHANNEL_DELEGATE
+        );
       });
-      console.log(channels);
-      if (channels.length === 0) {
-        console.log("create channel");
-        const newChannel = await pushAPIUser.channel.create({
-          name: "pulse-test-channel",
-          description: "Pulse Push Protocol notification channel",
-          url: "https://pulse-indol.vercel.app",
-          icon: "https://pulse-indol.vercel.app/favicon.ico",
-        });
-        console.log(newChannel);
+      if (!channel) {
+        await pushAPIUser.notification.subscribe(
+          process.env.NEXT_PUBLIC_CHANNEL_ADDRESS as string
+        );
       }
+
+      const stream = await pushAPIUser.initStream([CONSTANTS.STREAM.NOTIF], {
+        filter: {
+          channels: [process.env.NEXT_PUBLIC_CHANNEL_DELEGATE as string],
+        },
+        connection: {
+          retries: 3,
+        },
+        raw: false,
+      });
+
+      setPushStream(stream);
     } catch (error) {
       console.error(error);
     }
