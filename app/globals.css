@@ -38,3 +38,7 @@
   margin: 10px;
   color: #fff;
 }
+
+fieldset > div {
+  padding: 0 !important;
+}

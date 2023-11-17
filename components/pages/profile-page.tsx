@@ -1,17 +1,54 @@
 "use client";
 import { useSmartAccount } from "@/hooks/smart-account-context";
-import { Button, Card, LeftArrowSVG, Profile } from "@ensdomains/thorin";
+import {
+  Avatar,
+  Banner,
+  Button,
+  Card,
+  FieldSet,
+  Heading,
+  LeftArrowSVG,
+  Profile,
+  RadioButton,
+  RadioButtonGroup,
+  Tag,
+} from "@ensdomains/thorin";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useEnsName } from "wagmi";
 import { publicClient } from "@/lib/viem-client";
+import { useLazyQuery } from "@airstack/airstack-react";
+
+const query = `
+query GetUserDetailsFromENS($addresses: [Identity!]) {
+  Socials(
+    input: {
+      filter: { identity: { _in: $addresses } }
+      blockchain: ethereum
+    }
+  ) {
+    Social {
+      userAddress
+      dappName
+      profileName
+      profileImage
+      profileDisplayName
+      profileBio
+    }
+  }
+}
+`;
 
 export default function ProfilePage({
   profileAddress,
 }: {
   profileAddress: string;
 }) {
+  const [fetch, { data: profileData, loading, error }] = useLazyQuery(query, {
+    addresses: [profileAddress],
+  });
+  const [postsFilter, setPostsFilter] = useState<string>("liked");
   const router = useRouter();
   const { ready, authenticated, user, logout } = usePrivy();
   const {
@@ -36,9 +73,6 @@ export default function ProfilePage({
 
   const isLoading = !smartAccountAddress || !smartAccountProvider;
 
-  console.log(wallets);
-  // console.log(user);
-
   useEffect(() => {
     if (wallets && wallets.length > 0) {
       getEnsFromWallets();
@@ -58,12 +92,14 @@ export default function ProfilePage({
       })
     );
     setMappedWallets(mappedWallets);
+    await fetch({
+      addresses: [profileAddress].concat(
+        wallets.map((wallet) => wallet.address)
+      ),
+    });
   };
 
-  const isLoggedUser =
-    profileAddress.toLowerCase() === smartAccountAddress?.toLowerCase();
-
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center">
         Loading...
@@ -83,29 +119,46 @@ export default function ProfilePage({
             <LeftArrowSVG />
           </Button>
         </div>
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto px-4">
           <Card>
             <Profile address={profileAddress} ensName={data || undefined} />
-            {/* {isLoggedUser && (
-              <>
-                <h1 className="font-bold">Connected wallets</h1>
-                <div className="flex space-x-2">
-                  {mappedWallets.map(
-                    (wallet: { address: string; ens: string | undefined }) => (
-                      <Profile
-                        key={wallet.address}
-                        address={wallet.address}
-                        ensName={wallet.ens}
-                      />
-                      // <h2 key={wallet.address}>{wallet.address}</h2>
-                    )
-                  )}
-                </div>
-              </>
-            )} */}
-            {/* {isLoggedUser && (
-              <Button onClick={() => connectWallet()}>Connect wallet</Button>
-            )} */}
+            <Heading level="2">Socials</Heading>
+            {!profileData?.Socials && (
+              <p>No web3 socials linked to this account!</p>
+            )}
+            {profileData?.Socials?.Social?.map((social: any, index: number) => (
+              <Banner
+                key={`${social.dappName}-${index}`}
+                icon={
+                  <Avatar src={social.profileImage} label={social.dappName} />
+                }
+                title={social.profileName}
+                actionIcon={<Tag className="!mr-12">{social.dappName}</Tag>}
+              >
+                {social.profileBio}
+              </Banner>
+            ))}
+            {/* <Heading level="2">Liked Posts</Heading> */}
+            <FieldSet legend="Explore activity">
+              <RadioButtonGroup
+                inline
+                value={postsFilter}
+                onChange={(e) => setPostsFilter(e.target.value)}
+              >
+                <RadioButton
+                  label="Liked posts"
+                  name="RadioButtonGroup"
+                  value="liked"
+                  width="max"
+                />
+                <RadioButton
+                  label="Loved posts"
+                  name="RadioButtonGroup"
+                  value="super-liked"
+                  width="max"
+                />
+              </RadioButtonGroup>
+            </FieldSet>
           </Card>
         </div>
       </div>

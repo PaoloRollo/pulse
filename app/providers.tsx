@@ -8,6 +8,9 @@ import { ThemeProvider } from "styled-components";
 import { PrivyWagmiConnector } from "@privy-io/wagmi-connector";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { configureChains } from "wagmi";
+import { init } from "@airstack/airstack-react";
+
+init(process.env.NEXT_PUBLIC_AIRSTACK_API_KEY as string);
 
 const configureChainsConfig = configureChains(
   [baseGoerli],
