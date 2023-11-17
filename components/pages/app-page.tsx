@@ -8,9 +8,11 @@ import {
   ExitSVG,
   FlameSVG,
   LeftArrowSVG,
+  PersonSVG,
   Profile,
   Skeleton,
   SkeletonGroup,
+  Toast,
 } from "@ensdomains/thorin";
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
@@ -52,8 +54,16 @@ export default function AppPage() {
   } = useSmartAccount();
   const [currentIndex, setCurrentIndex] = useState(db.length - 1);
   const [lastDirection, setLastDirection] = useState();
+  const [showToast, setShowToast] = useState<boolean>(false);
   // used for outOfFrame closure
   const currentIndexRef = useRef(currentIndex);
+
+  const toggleToast = () => {
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 2000);
+  };
 
   const childRefs = useMemo<any[]>(
     () =>
@@ -76,6 +86,7 @@ export default function AppPage() {
   const swiped = (direction: any, nameToDelete: string, index: number) => {
     setLastDirection(direction);
     updateCurrentIndex(index - 1);
+    toggleToast();
   };
 
   const outOfFrame = (name: string, idx: number) => {
@@ -88,6 +99,7 @@ export default function AppPage() {
   };
 
   const swipe = async (dir: any) => {
+    toggleToast();
     if (canSwipe && currentIndex < db.length) {
       await childRefs[currentIndex].current.swipe(dir); // Swipe the card!
     }
@@ -109,6 +121,8 @@ export default function AppPage() {
   }, [ready, authenticated, router]);
 
   const isLoading = !smartAccountAddress || !smartAccountProvider;
+
+  console.log(isLoading);
 
   if (isLoading) {
     return (
@@ -151,18 +165,25 @@ export default function AppPage() {
           <Profile
             address={smartAccountAddress}
             className="cursor-pointer hover:-translate-y-0.5 transition-transform"
-            onClick={() => {
-              router.push(`/app/profile/${smartAccountAddress}`);
-            }}
+            // onClick={() => {
+            //   router.push(`/app/profile/${smartAccountAddress}`);
+            // }}
             // ensName="frontend.ens.eth"
+            dropdownItems={[
+              {
+                label: "Profile",
+                onClick: () =>
+                  router.push(`/app/profile/${smartAccountAddress}`),
+                icon: <PersonSVG />,
+              },
+              {
+                label: "Logout",
+                onClick: () => logout(),
+                icon: <ExitSVG />,
+                color: "red",
+              },
+            ]}
           />
-          <Button
-            colorStyle="redSecondary"
-            shape="circle"
-            onClick={() => logout()}
-          >
-            <ExitSVG />
-          </Button>
         </div>
         {db.map((character, index) => (
           <TinderCard
@@ -219,6 +240,14 @@ export default function AppPage() {
           </Button>
         </div>
       </div>
+      <Toast
+        description="This is an example toast."
+        open={showToast}
+        title="Example Toast"
+        variant="desktop"
+        msToShow={2000}
+        onClose={() => setShowToast(false)}
+      />
     </>
   );
 }
