@@ -40,7 +40,7 @@ const client = createWalletClient({
 async function mintNewPulseToken(account: string, id: number, amount: number, newUri: string) {
     try {
         const mintPulseToken = await client.writeContract({
-            address: '0x21e05e48ba21bf38464f70c0618cececfc4c6310',
+            address: '0x05c37de132a6a0c12c356bdf7bc5b581405d84b3',
             abi: PULSE_TOKEN_ABI,
             functionName: 'mintAndSetUri',
             args: [account, id, amount, "0x", newUri],
