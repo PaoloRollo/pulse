@@ -1,6 +1,6 @@
 import {fetchAddressSocialProfiles} from "@/lib/airstack/functions/fetch-user-socials";
 import {init} from "@airstack/airstack-react";
-import {getPostsByAuthors, getPostsByIds} from "@/lib/db/unified-posts";
+import {getAlreadyReactedPosts, getPostsByAuthors, getPostsByIds} from "@/lib/db/unified-posts";
 import {fetchPoaps} from "@/lib/airstack/functions/fetch-poaps";
 import {queryOpenAI} from "@/lib/opeanai";
 import {initPineconeIndex, queryPineconeIndex} from "@/lib/pinecone/index";
@@ -25,11 +25,12 @@ export const generateProfileQueries = async (address: string): Promise<string> =
     return queryOpenAI(content.substring(0, 10000));
 };
 
-export const getPostsForYou = async (address: string, excludeIds: string[] = []): Promise<UnifiedPost[]> => {
+export const getPostsForYou = async (privyAddress: string, address: string): Promise<UnifiedPost[]> => {
     const query = await queryOpenAI(await generateProfileQueries(address));
     try {
+        const alreadyReactedPostIds = await getAlreadyReactedPosts(privyAddress, 500)
         const pineconeIndex = await initPineconeIndex('posts');
-        const result = await queryPineconeIndex(pineconeIndex, [query.replace(/["'\\]/g, '').trim()], excludeIds);
+        const result = await queryPineconeIndex(pineconeIndex, [query.replace(/["'\\]/g, '').trim()], alreadyReactedPostIds);
         if (result?.matches.length > 0) {
             return await getPostsByIds(result.matches.map((r) => r.id));
         }
