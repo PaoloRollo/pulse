@@ -41,7 +41,11 @@
     "styled-components": "^6.1.1",
     "usehooks-ts": "^2.9.1",
     "viem": "^1.19.3",
-    "wagmi": "^1.4.7"
+    "wagmi": "^1.4.7",
+    "langchain": "0.0.192",
+    "@pinecone-database/pinecone": "^1.1.2",
+    "cohere-ai": "^6.2.2",
+    "@airstack/node": "^0.0.5"
   },
   "devDependencies": {
     "@swc/plugin-styled-components": "^1.5.98",
