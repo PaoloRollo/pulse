@@ -24,9 +24,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import TinderCard from "react-tinder-card";
 import Navbar from "../shared/navbar";
 import LoadingAppPage from "../loadings/loading-app-page";
-import { NFT_ADDRESS } from "@/lib/constants";
-import { pulseTokenABI } from "@/utils/pulse-token-1155-abi";
-import { encodeFunctionData } from "viem";
 
 export default function AppPage() {
   const router = useRouter();
@@ -57,6 +54,7 @@ export default function AppPage() {
   const [pulseSubdomain, setPulseSubdomain] = useState<string | undefined>(
     undefined
   );
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
 
   console.log("smartAccountAddress", smartAccountAddress);
 
@@ -89,20 +87,20 @@ export default function AppPage() {
         }),
       });
       const { easData, signature, count, nonHashed } = await response.json();
-      if (easData && signature && count) {
-        const data = encodeFunctionData({
-          abi: pulseTokenABI,
-          functionName: "mintWithSignature",
-          args: [smartAccountAddress, BigInt(count), "0x", easData, signature],
-        });
+      // if (easData && signature && count) {
+      //   const data = encodeFunctionData({
+      //     abi: pulseTokenABI,
+      //     functionName: "mintWithSignature",
+      //     args: [smartAccountAddress, BigInt(count), "0x", easData, signature],
+      //   });
 
-        await sendSponsoredUserOperation({
-          from: smartAccountAddress!,
-          to: NFT_ADDRESS,
-          data,
-          // value: BigInt(0),
-        });
-      }
+      //   await sendSponsoredUserOperation({
+      //     from: smartAccountAddress!,
+      //     to: NFT_ADDRESS,
+      //     data,
+      //     // value: BigInt(0),
+      //   });
+      // }
     } catch (error) {
       console.error(error);
     }
@@ -201,13 +199,20 @@ export default function AppPage() {
   };
 
   const fetchPosts = async () => {
-    const response = await fetch(
-      `/api/posts?page=${page}&address=${smartAccountAddress}&walletAddress=${connectedWallet.address}`
-    );
-    const data = await response.json();
+    setPageLoading(true);
+    try {
+      const response = await fetch(
+        `/api/posts?page=${page}&address=${smartAccountAddress}&walletAddress=${connectedWallet.address}`
+      );
+      const data = await response.json();
 
-    setPosts(data.posts);
-    setCurrentIndex(data.posts.length - 1);
+      setPosts(data.posts);
+      setCurrentIndex(data.posts.length - 1);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPageLoading(false);
+    }
   };
 
   const fetchConnectedWallet = async () => {
@@ -215,15 +220,22 @@ export default function AppPage() {
       (wallet) => wallet.connectorType !== "embedded"
     );
     if (wallet) {
-      const ens = await publicClient.getEnsName({
-        address: wallet.address as `0x${string}`,
-      });
-      setConnectedWallet({
-        ...wallet,
-        ens,
-      });
-      if (ens) {
-        setSubdomain(ens.split(".")[0]);
+      try {
+        const ens = await publicClient.getEnsName({
+          address: wallet.address as `0x${string}`,
+        });
+        setConnectedWallet({
+          ...wallet,
+          ens,
+        });
+        if (ens) {
+          setSubdomain(ens.split(".")[0]);
+        }
+      } catch (error) {
+        setConnectedWallet({
+          ...wallet,
+          ens: "",
+        });
       }
     }
   };
@@ -299,7 +311,8 @@ export default function AppPage() {
     }
   };
 
-  const isLoading = !smartAccountAddress || !smartAccountProvider;
+  const isLoading =
+    !smartAccountAddress || !smartAccountProvider || pageLoading;
 
   if (isLoading) {
     return <LoadingAppPage />;

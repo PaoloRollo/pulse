@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getPostsForYou } from "@/lib/pinecone/utils";
 
-export const maxDuration = 10;
+// export const maxDuration = 10;
 
 export async function GET(req: NextRequest) {
   const address = req.nextUrl.searchParams.get("address");
