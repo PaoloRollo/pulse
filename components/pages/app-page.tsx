@@ -50,6 +50,7 @@ export default function AppPage() {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [posts, setPosts] = useState<any[]>([]);
   const [page, setPage] = useState<number>(0);
+  const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
 
   const childRefs = useMemo<any[]>(
     () =>
@@ -101,6 +102,10 @@ export default function AppPage() {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    if (smartAccountAddress) fetchAuthData();
+  }, [smartAccountAddress]);
+
   // If the user is not authenticated, redirect them back to the landing page
   useEffect(() => {
     if (ready && !authenticated) {
@@ -123,6 +128,32 @@ export default function AppPage() {
       });
     }
   }, [smartAccountSigner]);
+
+  const registerUser = async () => {
+    try {
+      setConfirmLoading(true);
+      const response = await fetch(`/api/auth/register`, {
+        method: "POST",
+        body: JSON.stringify({
+          address: smartAccountAddress,
+          subdomain: `${subdomain}.pulse.eth`,
+        }),
+      });
+      const { result, error } = await response.json();
+      setShowModal(false);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
+  const fetchAuthData = async () => {
+    const response = await fetch(`/api/auth/${smartAccountAddress}`);
+
+    const { ens } = await response.json();
+    setShowModal(!ens);
+  };
 
   const fetchPosts = async () => {
     const response = await fetch(
@@ -374,8 +405,9 @@ export default function AppPage() {
               trailing={
                 <Button
                   disabled={!subdomain}
-                  onClick={() => setShowModal(false)}
+                  onClick={() => registerUser()}
                   colorStyle="blueSecondary"
+                  loading={confirmLoading}
                 >
                   Confirm
                 </Button>

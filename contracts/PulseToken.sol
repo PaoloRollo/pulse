@@ -17,8 +17,8 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
     IEAS private immutable eas;
     bytes32 public schema; 
 
-    mapping(address=>bool)authorizedUsers;
-    mapping(uint256=>bool)tokenIdsExist;
+    mapping(address=>bool) authorizedUsers;
+    mapping(uint256=>bool) tokenIdsExist;
 
     constructor(address initialOwner, IEAS _eas, bytes32 _schema) ERC1155("") Ownable(initialOwner) { 
         if (address(_eas) == address(0)) {
