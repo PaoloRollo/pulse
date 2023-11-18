@@ -14,7 +14,7 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
     error InvalidEAS();
     error InvalidUser();
     error InvalidTokenId();
-    event NewAttestation(uint256 content, address author, uint256 contentMintAmount);
+    event NewAttestation(uint256 id, string content, address author, uint256 contentMintAmount);
     // The address of the global EAS contract.
     IEAS private immutable eas;
     bytes32 public schema; 
@@ -73,9 +73,9 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
         freeSuperlikes[account] +=1;
         (bool mintEAS, uint256 contentMintAmount) = _checkEASEligibility(id);
         if (mintEAS) {
-            (uint256 content, address author) = abi.decode(EASData, (uint256, address));
+            (string memory content, address author) = abi.decode(EASData, (string, address));
             _attestUint(content, author, contentMintAmount);
-            emit NewAttestation(content, author, contentMintAmount);
+            emit NewAttestation(id, content, author, contentMintAmount);
         }
     }
 
@@ -105,7 +105,7 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
         super._update(from, to, ids, values);
     }
     
-    function _attestUint(uint256 content, address author, uint256 contentMintAmount) internal returns (bytes32) {
+    function _attestUint(string memory content, address author, uint256 contentMintAmount) internal returns (bytes32) {
         return
             eas.attest(
             AttestationRequest({
