@@ -1,0 +1,9 @@
+{
+    "pulse-token-1155-contract-base": "0x05c37DE132a6A0C12C356bdf7bc5B581405d84b3",
+    "EAS-pulse-contract-base": "0x8b007fe63347077f560252cd3956ea591411eb43",
+    "ENS-offchain-resolvers-contract-sepolia": "0x2d0B12DcEEf6c94e7611361310AFf761557C983a",
+    "EAS-schema-pulse-token": "0xa70c1df2cc93dc6e2170cd0d3714ffd6f553bd5fa746c7cbb8d5e17cd5834a3b",
+    "EAS-schema-streak": "0x2ab3954ec61933de42bdd3b4dd05f4e79607ce491198eedddf13a117df875831",
+    "EAS-schema-action": "0x0d8cd3d1832ac8ecc35412ed19f00d6cebb345b52b778d2d2d27ac5ee98cc217"
+}
+  

@@ -12,8 +12,8 @@ import {
 } from "viem";
 import { Chain, WalletClient } from "wagmi";
 import { baseGoerli } from "viem/chains";
-import { PULSE_TOKEN_ABI } from "../utils/pulse-token-abi";
-import { EAS_ABI } from "../utils/eas-abi";
+import * as PULSE_TOKEN_ABI from "../utils/pulse-token-1155-abi.json";
+import * as EAS_ABI from "../utils/eas-pulse-abi.json";
 
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -64,24 +64,14 @@ async function mintNewPulseToken(
   }
 }
 
-async function generateEAS(schema: string, account: string, data: string) {
-  const attestationRequest: AttestationRequest = {
-    schema: schema,
-    data: {
-      recipient: account,
-      expirationTime: 0,
-      revocable: false,
-      refUID: "",
-      data: data,
-      value: 0,
-    },
-  };
+async function generateEAS(schema: string, user: string, actionTimestamp: number, isSuperlike: boolean, action: number) {
+
   try {
     const generateAttestation = await client.writeContract({
-      address: "0x4200000000000000000000000000000000000021",
+      address: "0x8b007fe63347077f560252cd3956ea591411eb43",
       abi: EAS_ABI,
-      functionName: "attest",
-      args: [attestationRequest],
+      functionName: "attestUint",
+      args: [schema, user, actionTimestamp, isSuperlike, action],
     });
   } catch (error) {
     console.error("Error calling attest:", error);
