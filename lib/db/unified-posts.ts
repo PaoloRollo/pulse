@@ -24,7 +24,7 @@ export const getAlreadyReactedPosts = async (
     console.error(error);
     throw error;
   }
-  return data ? data.map((d) => d.content_id) : [];
+  return data ?? [];
 };
 
 export const getPosts = async (
