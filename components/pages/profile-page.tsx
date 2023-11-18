@@ -11,10 +11,12 @@ import LoadingNavbar from "../loadings/loading-navbar";
 import {
   Avatar,
   Button,
+  Card,
   FlameSVG,
   Heading,
   HeartSVG,
   Skeleton,
+  Typography,
 } from "@ensdomains/thorin";
 
 const query = `
@@ -42,9 +44,12 @@ export default function ProfilePage({
 }: {
   profileAddress: string;
 }) {
-  const [fetch, { data: profileData, loading, error }] = useLazyQuery(query, {
-    addresses: [profileAddress],
-  });
+  const [airstackFetch, { data: profileData, loading, error }] = useLazyQuery(
+    query,
+    {
+      addresses: [profileAddress],
+    }
+  );
   const [postsFilter, setPostsFilter] = useState<string>("likes");
   const router = useRouter();
   const { ready, authenticated, user, logout } = usePrivy();
@@ -60,6 +65,9 @@ export default function ProfilePage({
     wallets.map((wallet) => ({ address: wallet.address, ens: undefined }))
   );
   const { data } = useEnsName({ address: profileAddress as `0x${string}` });
+  const [likedPosts, setLikedPosts] = useState<any[]>([]);
+  const [firePosts, setFirePosts] = useState<any[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
 
   // If the user is not authenticated, redirect them back to the landing page
   useEffect(() => {
@@ -68,13 +76,33 @@ export default function ProfilePage({
     }
   }, [ready, authenticated, router]);
 
-  const isLoading = !smartAccountAddress || !smartAccountProvider;
+  const isLoading =
+    !smartAccountAddress || !smartAccountProvider || postsLoading;
 
   useEffect(() => {
     if (wallets && wallets.length > 0) {
       getEnsFromWallets();
     }
   }, [wallets]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setPostsLoading(true);
+      const response = await fetch(`/api/reactions?address=${profileAddress}`);
+      const { reactions } = await response.json();
+      const { likes, fires } = reactions;
+      setLikedPosts(likes);
+      setFirePosts(fires);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setPostsLoading(false);
+    }
+  };
 
   const getEnsFromWallets = async () => {
     const mappedWallets = await Promise.all(
@@ -89,7 +117,7 @@ export default function ProfilePage({
       })
     );
     setMappedWallets(mappedWallets);
-    await fetch({
+    await airstackFetch({
       addresses: [profileAddress].concat(
         wallets.map((wallet) => wallet.address)
       ),
@@ -127,11 +155,11 @@ export default function ProfilePage({
           <div className="flex items-center space-x-6 !text-[#9B9BA7]">
             <div className="flex items-center space-x-1">
               <FlameSVG />
-              <span>24</span>
+              <span>{firePosts.length}</span>
             </div>
             <div className="flex items-center space-x-1">
               <HeartSVG />
-              <span>2500</span>
+              <span>{likedPosts.length}</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-x-4 mt-8">
@@ -156,48 +184,75 @@ export default function ProfilePage({
               Fires
             </Button>
           </div>
+          {postsFilter === "likes" && (
+            <div className="flex flex-col space-y-4 mt-3">
+              {likedPosts.map((post) => (
+                <Card key={post.id}>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-10 w-10">
+                      <Avatar
+                        src={post.unified_posts.author_profile_image}
+                        label={post.unified_posts.author_name}
+                        height={40}
+                        width={40}
+                      />
+                    </div>
+                    <h1 className="font-bold">
+                      @{post.unified_posts.author_name}
+                    </h1>
+                  </div>
+                  <Typography>{post.unified_posts.cleaned_text}</Typography>
+                  <div className="flex items-center space-x-2">
+                    {post.unified_posts.source === "Farcaster" ? (
+                      <img src="/see-on-farcaster.svg" className="h-5" />
+                    ) : (
+                      <img src="/see-on-lens.svg" className="h-5" />
+                    )}
+                    <p className="text-xs text-[#9B9BA7]">
+                      {new Date(
+                        post.unified_posts.publish_date
+                      ).toLocaleDateString()}
+                    </p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+          {postsFilter === "fires" && (
+            <div className="flex flex-col space-y-4 mt-3">
+              {firePosts.map((post) => (
+                <Card key={post.id}>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-10 w-10">
+                      <Avatar
+                        src={post.unified_posts.author_profile_image}
+                        label={post.unified_posts.author_name}
+                        height={40}
+                        width={40}
+                      />
+                    </div>
+                    <h1 className="font-bold">
+                      @{post.unified_posts.author_name}
+                    </h1>
+                  </div>
+                  <Typography>{post.unified_posts.cleaned_text}</Typography>
+                  <div className="flex items-center space-x-2">
+                    {post.unified_posts.source === "Farcaster" ? (
+                      <img src="/see-on-farcaster.svg" className="h-5" />
+                    ) : (
+                      <img src="/see-on-lens.svg" className="h-5" />
+                    )}
+                    <p className="text-xs text-[#9B9BA7]">
+                      {new Date(
+                        post.unified_posts.publish_date
+                      ).toLocaleDateString()}
+                    </p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
-        {/* <div className="max-w-3xl mx-auto px-4">
-          <Card>
-            <Profile address={profileAddress} ensName={data || undefined} />
-            <Heading level="2">Socials</Heading>
-            {!profileData?.Socials && (
-              <p>No web3 socials linked to this account!</p>
-            )}
-            {profileData?.Socials?.Social?.map((social: any, index: number) => (
-              <Banner
-                key={`${social.dappName}-${index}`}
-                icon={
-                  <Avatar src={social.profileImage} label={social.dappName} />
-                }
-                title={social.profileName}
-                actionIcon={<Tag className="!mr-12">{social.dappName}</Tag>}
-              >
-                {social.profileBio}
-              </Banner>
-            ))}
-            <FieldSet legend="Explore activity">
-              <RadioButtonGroup
-                inline
-                value={postsFilter}
-                onChange={(e) => setPostsFilter(e.target.value)}
-              >
-                <RadioButton
-                  label="Liked posts"
-                  name="RadioButtonGroup"
-                  value="liked"
-                  width="max"
-                />
-                <RadioButton
-                  label="Loved posts"
-                  name="RadioButtonGroup"
-                  value="super-liked"
-                  width="max"
-                />
-              </RadioButtonGroup>
-            </FieldSet>
-          </Card>
-        </div> */}
       </div>
     </>
   );

@@ -61,7 +61,7 @@ async function generateEAS(
 ) {
   try {
     const generateAttestation = await client.writeContract({
-      address: "0x8b007fe63347077f560252cd3956ea591411eb43",
+      address: "0xd4d65bb544776f1200ef59793c33c66175668455",
       abi: easOffchainResolver,
       functionName: "attestUint",
       args: [schema, user, actionTimestamp, isSuperlike, action],

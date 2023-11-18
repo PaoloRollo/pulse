@@ -1,9 +1,8 @@
 {
-    "pulse-token-1155-contract-base": "0x0159ba3da955aa90a15452b962857ace7818ccb8",
-    "EAS-pulse-contract-base": "0x8b007fe63347077f560252cd3956ea591411eb43",
-    "ENS-offchain-resolvers-contract-sepolia": "0x2d0B12DcEEf6c94e7611361310AFf761557C983a",
-    "EAS-schema-pulse-token": "0xc1c0e858cd5a30e82c32074305991eda3ccf6378c1ca7109f2631af7bf9d10fb",
-    "EAS-schema-streak": "0x2ab3954ec61933de42bdd3b4dd05f4e79607ce491198eedddf13a117df875831",
-    "EAS-schema-action": "0x0d8cd3d1832ac8ecc35412ed19f00d6cebb345b52b778d2d2d27ac5ee98cc217"
+  "pulse-token-1155-contract-base": "0x0159ba3da955aa90a15452b962857ace7818ccb8",
+  "EAS-pulse-contract-base": "0xd4d65bb544776f1200ef59793c33c66175668455",
+  "ENS-offchain-resolvers-contract-sepolia": "0x2d0B12DcEEf6c94e7611361310AFf761557C983a",
+  "EAS-schema-pulse-token": "0xc1c0e858cd5a30e82c32074305991eda3ccf6378c1ca7109f2631af7bf9d10fb",
+  "EAS-schema-streak": "0x2ab3954ec61933de42bdd3b4dd05f4e79607ce491198eedddf13a117df875831",
+  "EAS-schema-action": "0x0d8cd3d1832ac8ecc35412ed19f00d6cebb345b52b778d2d2d27ac5ee98cc217"
 }
-  

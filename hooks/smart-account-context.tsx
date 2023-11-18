@@ -142,7 +142,9 @@ export const SmartAccountProvider = ({
             entryPointAddress: BASE_GOERLI_ENTRYPOINT_ADDRESS,
             chain: rpcClient.chain,
             owner: signer,
-            factoryAddress: getDefaultLightAccountFactoryAddress(rpcClient.chain),
+            factoryAddress: getDefaultLightAccountFactoryAddress(
+              rpcClient.chain
+            ),
             rpcClient,
           })
       );

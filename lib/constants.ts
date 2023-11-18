@@ -2,7 +2,7 @@
 export const BASE_GOERLI_ENTRYPOINT_ADDRESS =
   "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 // Sample NFT pulled from https://docs.base.org/guides/deploy-smart-contracts#verifying-the-smart-contract
-export const NFT_ADDRESS = "0x6527E5052de5521fE370AE5ec0aFCC6cD5a221de";
+export const NFT_ADDRESS = "0xd4d65bb544776f1200ef59793c33c66175668455";
 
 export const BASE_GOERLI_SCAN_URL = "https://goerli.basescan.org";
 export const BASE_GOERLI_PAYMASTER_URL = "https://paymaster.base.org";

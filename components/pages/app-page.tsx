@@ -2,6 +2,7 @@
 import { useSmartAccount } from "@/hooks/smart-account-context";
 import { publicClient } from "@/lib/viem-client";
 import {
+  Avatar,
   Button,
   Card,
   CounterClockwiseArrowSVG,
@@ -21,9 +22,11 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import TinderCard from "react-tinder-card";
-import localforage from "localforage";
 import Navbar from "../shared/navbar";
 import LoadingAppPage from "../loadings/loading-app-page";
+import { NFT_ADDRESS } from "@/lib/constants";
+import { pulseTokenABI } from "@/utils/pulse-token-1155-abi";
+import { encodeFunctionData } from "viem";
 
 export default function AppPage() {
   const router = useRouter();
@@ -55,6 +58,8 @@ export default function AppPage() {
     undefined
   );
 
+  console.log("smartAccountAddress", smartAccountAddress);
+
   const childRefs = useMemo<any[]>(
     () =>
       Array(100)
@@ -73,15 +78,34 @@ export default function AppPage() {
   const canSwipe = currentIndex >= 0;
 
   const react = async (direction: string, postId: string) => {
-    const reaction =
-      direction === "left" ? "SKIP" : direction === "up" ? "FIRE" : "LIKE";
-    await fetch(`/api/posts/${postId}`, {
-      method: "POST",
-      body: JSON.stringify({
-        address: smartAccountAddress,
-        reaction,
-      }),
-    });
+    try {
+      const reaction =
+        direction === "left" ? "SKIP" : direction === "up" ? "FIRE" : "LIKE";
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: "POST",
+        body: JSON.stringify({
+          address: smartAccountAddress,
+          reaction,
+        }),
+      });
+      const { easData, signature, count, nonHashed } = await response.json();
+      if (easData && signature && count) {
+        const data = encodeFunctionData({
+          abi: pulseTokenABI,
+          functionName: "mintWithSignature",
+          args: [smartAccountAddress, BigInt(count), "0x", easData, signature],
+        });
+
+        await sendSponsoredUserOperation({
+          from: smartAccountAddress!,
+          to: NFT_ADDRESS,
+          data,
+          // value: BigInt(0),
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // set last direction and decrease current index
@@ -137,13 +161,17 @@ export default function AppPage() {
 
   useEffect(() => {
     if (smartAccountSigner) {
-      fetchNotificationStatus().then(() => {
-        const notificationPermission = Notification.permission === "granted";
-        setPermission(notificationPermission);
-        if (notificationPermission) subscribeToNotifications();
-      });
+      fetchNotificationStatus();
     }
   }, [smartAccountSigner]);
+
+  useEffect(() => {
+    if (pushStream) {
+      const notificationPermission = Notification.permission === "granted";
+      setPermission(notificationPermission);
+      if (notificationPermission) subscribeToNotifications();
+    }
+  }, [pushStream]);
 
   const registerUser = async () => {
     try {
@@ -208,8 +236,6 @@ export default function AppPage() {
         notificationPermission = result === "granted";
       }
       if (notificationPermission) {
-        const token = await localforage.getItem("pulse_fcm_token");
-
         pushStream.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
           console.log(data);
           const { body, title } = data.message.notification;
@@ -256,7 +282,10 @@ export default function AppPage() {
 
       const stream = await pushAPIUser.initStream([CONSTANTS.STREAM.NOTIF], {
         filter: {
-          channels: [process.env.NEXT_PUBLIC_CHANNEL_DELEGATE as string],
+          channels: [
+            process.env.NEXT_PUBLIC_CHANNEL_ADDRESS as string,
+            process.env.NEXT_PUBLIC_CHANNEL_DELEGATE as string,
+          ],
         },
         connection: {
           retries: 3,
@@ -292,7 +321,13 @@ export default function AppPage() {
               onCardLeftScreen={() => outOfFrame(post.content_id, index)}
             >
               <Card className="h-[449px] w-[313px] p-4" id={post.content_id}>
-                <ScrollBox style={{ height: "449px" }}>
+                <div className="flex items-center space-x-2">
+                  <div className="h-10 w-10 blur-sm">
+                    <Avatar src="" label="" />
+                  </div>
+                  <h1 className="blur-sm">unknown</h1>
+                </div>
+                <ScrollBox style={{ height: "400px" }}>
                   <Typography className="select-none w-full break-words text-xl">
                     {post.cleaned_text}
                   </Typography>
