@@ -30,11 +30,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         loginMethods: ["email", "google", "github", "apple"],
         appearance: {
           theme: "light",
-          accentColor: "#676FFF",
         },
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
-          noPromptOnSignature: true,
+          noPromptOnSignature: false,
         },
         defaultChain: baseGoerli,
       }}
