@@ -23,6 +23,7 @@
     "@privy-io/wagmi-connector": "^0.1.6",
     "@pushprotocol/restapi": "^1.4.38",
     "@react-spring/web": "9.5.5",
+    "@supabase/supabase-js": "^2.38.4",
     "alchemy-sdk": "^3.0.0",
     "cheerio": "^1.0.0-rc.12",
     "firebase": "^10.6.0",

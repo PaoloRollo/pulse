@@ -10,6 +10,7 @@ import {
   FlameSVG,
   HeartSVG,
   Input,
+  ScrollBox,
   Typography,
   WalletSVG,
 } from "@ensdomains/thorin";
@@ -24,29 +25,6 @@ import localforage from "localforage";
 import Navbar from "../shared/navbar";
 import LoadingAppPage from "../loadings/loading-app-page";
 
-const db = [
-  {
-    name: "Richard Hendricks",
-    url: "./img/richard.jpg",
-  },
-  {
-    name: "Erlich Bachman",
-    url: "./img/erlich.jpg",
-  },
-  {
-    name: "Monica Hall",
-    url: "./img/monica.jpg",
-  },
-  {
-    name: "Jared Dunn",
-    url: "./img/jared.jpg",
-  },
-  {
-    name: "Dinesh Chugtai",
-    url: "./img/dinesh.jpg",
-  },
-];
-
 export default function AppPage() {
   const router = useRouter();
   const { ready, authenticated, user, logout, connectWallet } = usePrivy();
@@ -59,7 +37,7 @@ export default function AppPage() {
   } = useSmartAccount();
   const { wallets } = useWallets();
   const [connectedWallet, setConnectedWallet] = useState<any>(null);
-  const [currentIndex, setCurrentIndex] = useState(db.length - 1);
+  const [currentIndex, setCurrentIndex] = useState(99);
   const [lastDirection, setLastDirection] = useState();
   const [pushUser, setPushUser] = useState<PushAPI | null>(null);
   const [pushStream, setPushStream] = useState<PushStream | null>(null);
@@ -70,10 +48,12 @@ export default function AppPage() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [subdomain, setSubdomain] = useState<string>("");
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [page, setPage] = useState<number>(0);
 
   const childRefs = useMemo<any[]>(
     () =>
-      Array(db.length)
+      Array(100)
         .fill(0)
         .map((i) => React.createRef()),
     []
@@ -84,7 +64,7 @@ export default function AppPage() {
     currentIndexRef.current = val;
   };
 
-  const canGoBack = currentIndex < db.length - 1;
+  const canGoBack = currentIndex < posts.length - 1;
 
   const canSwipe = currentIndex >= 0;
 
@@ -104,7 +84,7 @@ export default function AppPage() {
   };
 
   const swipe = async (dir: any) => {
-    if (canSwipe && currentIndex < db.length) {
+    if (canSwipe && currentIndex < posts.length) {
       await childRefs[currentIndex].current.swipe(dir); // Swipe the card!
     }
   };
@@ -117,12 +97,9 @@ export default function AppPage() {
     await childRefs[newIndex].current.restoreCard();
   };
 
-  // useEffect(() => {
-  //   const notificationPermission = Notification.permission === "granted";
-  //   setPermission(notificationPermission);
-  //   console.log(notificationPermission);
-  //   if (notificationPermission) subscribeToNotifications();
-  // }, []);
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
   // If the user is not authenticated, redirect them back to the landing page
   useEffect(() => {
@@ -146,6 +123,16 @@ export default function AppPage() {
       });
     }
   }, [smartAccountSigner]);
+
+  const fetchPosts = async () => {
+    const response = await fetch(
+      `/api/posts?page=${page}&address=${smartAccountAddress}`
+    );
+    const data = await response.json();
+
+    setPosts(data.posts);
+    setCurrentIndex(data.posts.length - 1);
+  };
 
   const fetchConnectedWallet = async () => {
     const wallet = wallets.find(
@@ -253,25 +240,22 @@ export default function AppPage() {
       <div className="h-screen w-screen bg-[#EEF5FF] overflow-hidden">
         <Navbar />
         <div className="flex items-center justify-center h-[500px] overflow-hidden">
-          {db.map((character, index) => (
+          {posts.map((post, index) => (
             <TinderCard
               ref={childRefs[index]}
               className="swipe"
-              key={character.name}
+              key={post.content_id}
               preventSwipe={["down", "up"]}
               swipeRequirementType="position"
-              onSwipe={(dir) => swiped(dir, character.name, index)}
-              onCardLeftScreen={() => outOfFrame(character.name, index)}
+              onSwipe={(dir) => swiped(dir, post.content_id, index)}
+              onCardLeftScreen={() => outOfFrame(post.content_id, index)}
             >
-              <Card
-                className="h-[449px] w-[313px] flex items-center justify-center"
-                id={character.name}
-              >
-                <h3 className="select-none text-center">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem
-                  ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum
-                  dolor sit amet, consectetur adipiscing elit.
-                </h3>
+              <Card className="h-[449px] w-[313px] p-4" id={post.content_id}>
+                <ScrollBox style={{ height: "449px" }}>
+                  <Typography className="select-none w-full break-words text-xl">
+                    {post.cleaned_text}
+                  </Typography>
+                </ScrollBox>
               </Card>
             </TinderCard>
           ))}
