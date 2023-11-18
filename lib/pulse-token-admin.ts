@@ -1,9 +1,9 @@
 import { http, createWalletClient } from "viem";
 import { baseGoerli } from "viem/chains";
-import * as PULSE_TOKEN_ABI from "../utils/pulse-token-1155-abi.json";
-import * as EAS_ABI from "../utils/eas-pulse-abi.json";
 
 import { privateKeyToAccount } from "viem/accounts";
+import { pulseTokenABI } from "@/utils/pulse-token-1155-abi";
+import { easOffchainResolver } from "@/utils/eas-offchain-resolver-abi";
 
 interface AttestationRequestData {
   recipient: string; // The recipient of the attestation.
@@ -43,7 +43,7 @@ async function mintNewPulseToken(
   try {
     const mintPulseToken = await client.writeContract({
       address: "0x05c37de132a6a0c12c356bdf7bc5b581405d84b3",
-      abi: PULSE_TOKEN_ABI,
+      abi: pulseTokenABI,
       functionName: "mintAndSetUri",
       args: [account, id, amount, "0x", newUri],
     });
@@ -62,7 +62,7 @@ async function generateEAS(
   try {
     const generateAttestation = await client.writeContract({
       address: "0x8b007fe63347077f560252cd3956ea591411eb43",
-      abi: EAS_ABI,
+      abi: easOffchainResolver,
       functionName: "attestUint",
       args: [schema, user, actionTimestamp, isSuperlike, action],
     });
