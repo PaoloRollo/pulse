@@ -13,12 +13,18 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
     error InvalidEAS();
     error InvalidUser();
     error InvalidTokenId();
+    event NewAttestation(uint256 content, address author, uint256 contentMintAmount);
     // The address of the global EAS contract.
     IEAS private immutable eas;
     bytes32 public schema; 
+    uint256 public freeSuperlikesCounter;
+    uint256 public superlikePrice;
 
-    mapping(address=>bool)authorizedUsers;
-    mapping(uint256=>bool)tokenIdsExist;
+    mapping(address=>bool) public authorizedUsers;
+    mapping(uint256=>bool)public tokenIdsExist;
+    mapping(address=>uint256)public freeSuperlikes;
+
+    receive() external payable {}
 
     constructor(address initialOwner, IEAS _eas, bytes32 _schema) ERC1155("") Ownable(initialOwner) { 
         if (address(_eas) == address(0)) {
@@ -26,6 +32,8 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
         }
         eas = _eas;
         schema = _schema;
+        freeSuperlikesCounter = 3;
+        superlikePrice = 0.001 ether;
     }
 
     function authorizeUser(address user, bool authorized) external onlyOwner {
@@ -35,13 +43,23 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
         authorizedUsers[user] = authorized;
     }
 
+    function setFreeSuperlikesCounter(uint256 newfreeSuperlikesCounter) external onlyOwner returns(uint256) {
+        freeSuperlikesCounter = newfreeSuperlikesCounter;
+        return(freeSuperlikesCounter);
+    }
+
+    function setSuperlikesPrice(uint256 newSuperlikesPrice) external onlyOwner returns(uint256) {
+        superlikePrice = newSuperlikesPrice;
+        return(superlikePrice);
+    }
+
     function mintAndSetUri(address account, uint256 id, uint256 amount, bytes memory data, string memory newuri) public onlyOwner {
         _mint(account, id, amount, data);
         setURI(id, newuri);
         tokenIdsExist[id]=true;
     }
 
-    function mint(address account, uint256 id, bytes memory data, bytes memory EASData) public {
+    function mint(address account, uint256 id, bytes memory data, bytes memory EASData) payable public {
         if (msg.sender != account) {
             revert InvalidUser();
         }
@@ -53,16 +71,17 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
         if (!tokenExist) {
             revert InvalidTokenId();
         }
+        if(freeSuperlikes[account]>freeSuperlikesCounter) {
+            require(msg.value == superlikePrice);
+        }
         _mint(account, id, 1, data);
+        freeSuperlikes[account] +=1;
         (bool mintEAS, uint256 contentMintAmount) = _checkEASEligibility(id);
         if (mintEAS) {
             (uint256 content, address author) = abi.decode(EASData, (uint256, address));
             _attestUint(content, author, contentMintAmount);
+            emit NewAttestation(content, author, contentMintAmount);
         }
-    }
-
-    function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data) public onlyOwner {
-        _mintBatch(to, ids, amounts, data);
     }
 
     function uri(uint256 tokenId) public view override(ERC1155, ERC1155URIStorage) returns (string memory) {
