@@ -1,16 +1,4 @@
-import { ethers } from "ethers";
-import {
-  encodeFunctionData,
-  formatUnits,
-  parseUnits,
-  createPublicClient,
-  http,
-  getContract,
-  createWalletClient,
-  parseAbi,
-  encodeAbiParameters,
-} from "viem";
-import { Chain, WalletClient } from "wagmi";
+import { http, createWalletClient } from "viem";
 import { baseGoerli } from "viem/chains";
 import * as PULSE_TOKEN_ABI from "../utils/pulse-token-1155-abi.json";
 import * as EAS_ABI from "../utils/eas-pulse-abi.json";
@@ -64,8 +52,13 @@ async function mintNewPulseToken(
   }
 }
 
-async function generateEAS(schema: string, user: string, actionTimestamp: number, isSuperlike: boolean, action: number) {
-
+async function generateEAS(
+  schema: string,
+  user: string,
+  actionTimestamp: number,
+  isSuperlike: boolean,
+  action: number
+) {
   try {
     const generateAttestation = await client.writeContract({
       address: "0x8b007fe63347077f560252cd3956ea591411eb43",
