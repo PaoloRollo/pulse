@@ -1,24 +1,21 @@
 "use client";
 import { useSmartAccount } from "@/hooks/smart-account-context";
-import {
-  Avatar,
-  Banner,
-  Button,
-  Card,
-  FieldSet,
-  Heading,
-  LeftArrowSVG,
-  Profile,
-  RadioButton,
-  RadioButtonGroup,
-  Tag,
-} from "@ensdomains/thorin";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useEnsName } from "wagmi";
 import { publicClient } from "@/lib/viem-client";
 import { useLazyQuery } from "@airstack/airstack-react";
+import Navbar from "../shared/navbar";
+import LoadingNavbar from "../loadings/loading-navbar";
+import {
+  Avatar,
+  Button,
+  FlameSVG,
+  Heading,
+  HeartSVG,
+  Skeleton,
+} from "@ensdomains/thorin";
 
 const query = `
 query GetUserDetailsFromENS($addresses: [Identity!]) {
@@ -48,7 +45,7 @@ export default function ProfilePage({
   const [fetch, { data: profileData, loading, error }] = useLazyQuery(query, {
     addresses: [profileAddress],
   });
-  const [postsFilter, setPostsFilter] = useState<string>("liked");
+  const [postsFilter, setPostsFilter] = useState<string>("likes");
   const router = useRouter();
   const { ready, authenticated, user, logout } = usePrivy();
   const {
@@ -101,25 +98,66 @@ export default function ProfilePage({
 
   if (isLoading || loading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center">
-        Loading...
+      <div className="h-screen w-screen bg-[#EEF5FF]">
+        <LoadingNavbar />
+        <div className="p-8">
+          <Skeleton loading>
+            <div className="h-[120px] w-[120px]"></div>
+          </Skeleton>
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="h-screen w-screen">
-        <div className="flex items-center justify-between p-4">
-          <Button
-            colorStyle="blueSecondary"
-            onClick={() => router.push("/app")}
-            shape="circle"
-          >
-            <LeftArrowSVG />
-          </Button>
+      <div className="h-screen w-screen bg-[#EEF5FF]">
+        <Navbar />
+        <div className="p-8">
+          <div className="h-[120px] w-[120px]">
+            <Avatar
+              src={profileData?.Socials?.Social[0].profileImage}
+              label="Profile image"
+            />
+          </div>
+          <Heading className="my-4 text-[#1E2122]">
+            {data ||
+              `${profileAddress.slice(0, 4)}...${profileAddress.slice(-4)}`}
+          </Heading>
+          <div className="flex items-center space-x-6 !text-[#9B9BA7]">
+            <div className="flex items-center space-x-1">
+              <FlameSVG />
+              <span>24</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <HeartSVG />
+              <span>2500</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 mt-8">
+            <Button
+              colorStyle={
+                postsFilter === "likes" ? "bluePrimary" : "transparent"
+              }
+              // className={postsFilter === "likes" ? "" : "!text-[#056AFF]"}
+              onClick={() => setPostsFilter("likes")}
+              prefix={<HeartSVG />}
+            >
+              Likes
+            </Button>
+            <Button
+              colorStyle={
+                postsFilter === "fires" ? "pinkPrimary" : "transparent"
+              }
+              // className={postsFilter === "fires" ? "" : "!text-[#D52E7E]"}
+              onClick={() => setPostsFilter("fires")}
+              prefix={<FlameSVG />}
+            >
+              Fires
+            </Button>
+          </div>
         </div>
-        <div className="max-w-3xl mx-auto px-4">
+        {/* <div className="max-w-3xl mx-auto px-4">
           <Card>
             <Profile address={profileAddress} ensName={data || undefined} />
             <Heading level="2">Socials</Heading>
@@ -138,7 +176,6 @@ export default function ProfilePage({
                 {social.profileBio}
               </Banner>
             ))}
-            {/* <Heading level="2">Liked Posts</Heading> */}
             <FieldSet legend="Explore activity">
               <RadioButtonGroup
                 inline
@@ -160,7 +197,7 @@ export default function ProfilePage({
               </RadioButtonGroup>
             </FieldSet>
           </Card>
-        </div>
+        </div> */}
       </div>
     </>
   );
