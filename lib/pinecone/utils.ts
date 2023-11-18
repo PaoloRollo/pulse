@@ -1,9 +1,7 @@
 import { fetchAddressSocialProfiles } from "@/lib/airstack/functions/fetch-user-socials";
 import { init } from "@airstack/node";
 import {
-  getAlreadyReactedPosts,
-  getPostsByAuthors,
-  getPostsByIds,
+    getAlreadyReactedPosts, getPostsByAuthors, getPostsByIds
 } from "@/lib/db/unified-posts";
 import { fetchPoaps } from "@/lib/airstack/functions/fetch-poaps";
 import { queryOpenAI } from "@/lib/opeanai";

@@ -1,21 +1,25 @@
 import { createClient } from "@supabase/supabase-js";
 import { UnifiedPost } from "./types/ex-supabase";
 
+export enum ReactionType {
+  SKIP = "SKIP",
+  LIKE = "LIKE",
+  FIRE = "FIRE"
+}
 export const getAlreadyReactedPosts = async (
   address: string,
   limit = 100,
   page = 0
-): Promise<string[]> => {
+): Promise<any> => {
   const supabase = createClient(
     process.env.SUPABASE_URL as string,
     process.env.SUPABASE_SERVICE_KEY as string
   );
-  const { data, error } = await supabase
-    .from("reactions")
-    .select("address,content_id")
-    .eq("address", address)
-    .range(page * limit, (page + 1) * limit - 1)
-    .limit(limit);
+  const {data, error} = await supabase
+      .from('reactions')
+      .select('address,content_id:unified_posts!inner(content_id,cleaned_text),reaction').eq("address", address)
+      .range(page * limit, (page + 1) * limit - 1)
+      .limit(limit);
   if (error) {
     console.error(error);
     throw error;
