@@ -3,12 +3,10 @@ import * as fs from "fs";
 import * as cheerio from "cheerio";
 
 interface DynamicSVGParameters {
-  width: number;
-  height: number;
-  avatarUrl: string;
-  textPreview: string;
-  authorHandle: string;
-  // Add other parameters as needed
+  username: string;
+  handle: string;
+  preview: string;
+  platform: string;
 }
 
 // Read the API key from an environment variable. You'll need to set this before running the example!
@@ -26,15 +24,18 @@ async function getExampleImage(): Promise<Blob> {
 
 async function getDynamicSVGImage(params: DynamicSVGParameters): Promise<Blob> {
   // Read the SVG template from a local file
-  const svgTemplatePath = "../utils/NFT-template.svg";
+  const svgTemplatePath = "../utils/Text.svg";
   const svgTemplate = fs.readFileSync(svgTemplatePath, "utf-8");
 
   // Load the SVG template using Cheerio
   const $ = cheerio.load(svgTemplate, { xmlMode: true });
 
   // Modify SVG elements based on input parameters
-  $("text.preview").text(params.textPreview);
-  $("text.author-handle").text(params.authorHandle);
+  $("text#\\@handle tspan").text(params.handle);
+  $("text#username tspan").text(params.username);
+  $("text#Lorem\\ ipsum\\ dolor\\ sit\\ amet\\ consectetur.\\ Sit\\ cras\\ porta\\ sed\\ nam\\ tristique\\ volutpat.\\ Id\\ vel\\ ipsum\\ morbi\\ purus\\ varius.\\ Mattis\\ vel\\ malesuada\\ eget\\ duis. tspan").text(params.preview);
+  $("text#Farcaster tspan").text(params.platform);
+
   // Add logic to replace other elements like avatar, etc.
 
   // Convert the modified SVG element to a string
@@ -73,3 +74,13 @@ async function storeExampleNFT(params: DynamicSVGParameters): Promise<void> {
   console.log("NFT data stored!");
   console.log("Metadata URI: ", metadata.url);
 }
+
+// Example usage
+const exampleParams: DynamicSVGParameters = {
+  username: "JohnDoe",
+  handle: "@john_doe",
+  preview: "This is a preview text.",
+  platform: "Twitter",
+};
+
+storeExampleNFT(exampleParams).then(res=>{console.log(res, "res")})
