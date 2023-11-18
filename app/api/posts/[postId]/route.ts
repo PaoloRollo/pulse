@@ -81,7 +81,7 @@ export async function POST(
         env: CONSTANTS.ENV.STAGING,
       });
 
-      await pushAPI.channel.send(["*"], {
+      await pushAPI.channel.send([`eip155:11155111:${address}`], {
         notification: {
           title: "New NFT minted!",
           body: "You just minted a new NFT!",

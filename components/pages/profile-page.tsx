@@ -68,6 +68,9 @@ export default function ProfilePage({
   const [likedPosts, setLikedPosts] = useState<any[]>([]);
   const [firePosts, setFirePosts] = useState<any[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
+  const [pulseSubdomain, setPulseSubdomain] = useState<string | undefined>(
+    undefined
+  );
 
   // If the user is not authenticated, redirect them back to the landing page
   useEffect(() => {
@@ -87,7 +90,15 @@ export default function ProfilePage({
 
   useEffect(() => {
     fetchPosts();
+    fetchAuthData();
   }, []);
+
+  const fetchAuthData = async () => {
+    const response = await fetch(`/api/auth/${profileAddress}`);
+
+    const { ens } = await response.json();
+    setPulseSubdomain(ens || undefined);
+  };
 
   const fetchPosts = async () => {
     try {
@@ -139,7 +150,7 @@ export default function ProfilePage({
 
   return (
     <>
-      <div className="h-screen w-screen bg-[#EEF5FF]">
+      <div className="min-h-screen w-screen bg-[#EEF5FF]">
         <Navbar />
         <div className="p-8">
           <div className="h-[120px] w-[120px]">
@@ -149,7 +160,7 @@ export default function ProfilePage({
             />
           </div>
           <Heading className="my-4 text-[#1E2122]">
-            {data ||
+            {pulseSubdomain ||
               `${profileAddress.slice(0, 4)}...${profileAddress.slice(-4)}`}
           </Heading>
           <div className="flex items-center space-x-6 !text-[#9B9BA7]">
