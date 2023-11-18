@@ -1,9 +1,20 @@
 import { NFTStorage, File } from 'nft.storage';
+import * as fs from 'fs';
+import * as cheerio from 'cheerio';
+
+interface DynamicSVGParameters {
+  width: number;
+  height: number;
+  avatarUrl: string;
+  textPreview: string;
+  authorHandle: string;
+  // Add other parameters as needed
+}
 
 // Read the API key from an environment variable. You'll need to set this before running the example!
 const API_KEY: string | undefined = process.env.NFTSTORAGE_PRIVATE_KEY;
 
-// TBD
+/*
 async function getExampleImage(): Promise<Blob> {
   const imageOriginUrl = "https://user-images.githubusercontent.com/87873179/144324736-3f09a98e-f5aa-4199-a874-13583bf31951.jpg";
   const r = await fetch(imageOriginUrl);
@@ -11,28 +22,46 @@ async function getExampleImage(): Promise<Blob> {
     throw new Error(`Error fetching image: [${r.status}]: ${r.statusText}`);
   }
   return r.blob();
+}*/
+
+async function getDynamicSVGImage(params: DynamicSVGParameters): Promise<Blob> {
+  // Read the SVG template from a local file
+  const svgTemplatePath = 'path/to/your/template.svg'; // TODO change it
+  const svgTemplate = fs.readFileSync(svgTemplatePath, 'utf-8');
+
+  // Load the SVG template using Cheerio
+  const $ = cheerio.load(svgTemplate, { xmlMode: true });
+
+  // Modify SVG elements based on input parameters
+  $('text.preview').text(params.textPreview);
+  $('text.author-handle').text(params.authorHandle);
+  // Add logic to replace other elements like avatar, etc.
+
+  // Convert the modified SVG element to a string
+  const modifiedSvgString = $.xml();
+
+  // Convert the SVG string to Blob
+  const blob = new Blob([modifiedSvgString], { type: 'image/svg+xml' });
+
+  return blob;
 }
 
-async function storeExampleNFT(): Promise<void> {
+async function storeExampleNFT(params: DynamicSVGParameters): Promise<void> {
   if (!API_KEY) {
     throw new Error('NFT_STORAGE_API_KEY is not set.');
   }
 
-  const image = await getExampleImage();
+  const image = await getDynamicSVGImage(params);
 
   const nft = {
     image: new File([image], 'example.jpg', { type: 'image/jpeg' }), 
-    name: "Storing the World's Most Valuable Virtual Assets with NFT.Storage",
-    description: "The metaverse is here. Where is it all being stored?",
+    name: "Storing the Pulse NFT superlike content with NFT.Storage",
+    description: "Pulse NFT representing a superlike content",
     properties: {
-      type: "blog-post",
-      origins: {
-        http: "https://blog.nft.storage/posts/2021-11-30-hello-world-nft-storage/",
-        ipfs: "ipfs://bafybeieh4gpvatp32iqaacs6xqxqitla4drrkyyzq6dshqqsilkk3fqmti/blog/post/2021-11-30-hello-world-nft-storage/"
-      },
-      authors: [{ name: "David Choi" }],
+      type: "content-post",
+      authors: [{ name: "Pulse" }],
       content: {
-        "text/markdown": "The last year has witnessed the explosion of NFTs onto the world’s mainstage. From fine art to collectibles to music and media, NFTs are quickly demonstrating just how quickly grassroots Web3 communities can grow, and perhaps how much closer we are to mass adoption than we may have previously thought. <... remaining content omitted ...>"
+        "text/markdown": "This is the Pulse content minted by an user through a superlike action."
       }
     }
   };
@@ -43,5 +72,3 @@ async function storeExampleNFT(): Promise<void> {
   console.log('NFT data stored!');
   console.log('Metadata URI: ', metadata.url);
 }
-
-storeExampleNFT();
