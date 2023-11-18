@@ -51,6 +51,9 @@ export default function AppPage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [page, setPage] = useState<number>(0);
   const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
+  const [pulseSubdomain, setPulseSubdomain] = useState<string | undefined>(
+    undefined
+  );
 
   const childRefs = useMemo<any[]>(
     () =>
@@ -153,6 +156,7 @@ export default function AppPage() {
 
     const { ens } = await response.json();
     setShowModal(!ens);
+    setPulseSubdomain(ens || undefined);
   };
 
   const fetchPosts = async () => {
