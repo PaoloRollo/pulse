@@ -139,8 +139,8 @@ export default function AppPage() {
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (connectedWallet && smartAccountAddress) fetchPosts();
+  }, [connectedWallet, smartAccountAddress]);
 
   useEffect(() => {
     if (smartAccountAddress) fetchAuthData();
@@ -202,7 +202,7 @@ export default function AppPage() {
 
   const fetchPosts = async () => {
     const response = await fetch(
-      `/api/posts?page=${page}&address=${smartAccountAddress}`
+      `/api/posts?page=${page}&address=${smartAccountAddress}&walletAddress=${connectedWallet.address}`
     );
     const data = await response.json();
 

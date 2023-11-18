@@ -1,10 +1,16 @@
-import { gql } from '@apollo/client/core/index.js';
+import { gql } from "@apollo/client/core/index.js";
 
-import { fetchAllPagesQuery } from '../utils.js';
+import { fetchAllPagesQuery } from "../utils";
 
 export const fetchPoapsQuery = gql`
   query MyQuery($address: Identity!) {
-    Poaps(input: { filter: { owner: { _eq: $address } }, blockchain: ALL, limit: 50 }) {
+    Poaps(
+      input: {
+        filter: { owner: { _eq: $address } }
+        blockchain: ALL
+        limit: 50
+      }
+    ) {
       Poap {
         id
         eventId
@@ -52,84 +58,87 @@ export const fetchPoapsQuery = gql`
 `;
 
 interface PoapsResponse {
-    Poaps: {
-        Poap: Poap[];
-        pageInfo: PageInfo;
-    };
+  Poaps: {
+    Poap: Poap[];
+    pageInfo: PageInfo;
+  };
 }
 
 interface Poap {
-    id: string;
-    eventId: string;
-    tokenId: string;
-    tokenAddress: string;
-    tokenUri: string;
-    poapEvent: PoapEvent;
-    attendee: Attendee;
+  id: string;
+  eventId: string;
+  tokenId: string;
+  tokenAddress: string;
+  tokenUri: string;
+  poapEvent: PoapEvent;
+  attendee: Attendee;
 }
 
 interface PoapEvent {
-    id: string;
-    eventId: string;
-    metadata: Metadata;
-    contentType: string;
-    contentValue: ContentValue;
-    eventName: string;
-    description: string;
-    country: string;
-    city: string;
-    startDate: string;
-    endDate: string;
-    isVirtualEvent: boolean;
-    eventURL: string;
+  id: string;
+  eventId: string;
+  metadata: Metadata;
+  contentType: string;
+  contentValue: ContentValue;
+  eventName: string;
+  description: string;
+  country: string;
+  city: string;
+  startDate: string;
+  endDate: string;
+  isVirtualEvent: boolean;
+  eventURL: string;
 }
 
 interface Metadata {
-    attributes: Attribute[];
-    description: string;
-    external_url: string;
-    home_url: string;
-    image_url: string;
-    name: string;
-    tags: string[];
-    year: number;
+  attributes: Attribute[];
+  description: string;
+  external_url: string;
+  home_url: string;
+  image_url: string;
+  name: string;
+  tags: string[];
+  year: number;
 }
 
 interface Attribute {
-    trait_type: string;
-    value: string | boolean | number;
+  trait_type: string;
+  value: string | boolean | number;
 }
 
 interface ContentValue {
-    image?: ImageSizes;
-    video?: string | null;
-    audio?: string | null;
-    animation_url?: AnimationUrl | null;
+  image?: ImageSizes;
+  video?: string | null;
+  audio?: string | null;
+  animation_url?: AnimationUrl | null;
 }
 
 interface ImageSizes {
-    extraSmall: string;
-    small: string;
-    medium: string;
-    large: string;
-    original: string;
+  extraSmall: string;
+  small: string;
+  medium: string;
+  large: string;
+  original: string;
 }
 
 interface AnimationUrl {
-    original: string;
+  original: string;
 }
 
 interface Attendee {
-    totalPoapOwned: number;
+  totalPoapOwned: number;
 }
 
 // If you have a pageInfo structure as well, define it here
 interface PageInfo {
-    prevCursor?: string;
-    nextCursor?: string;
+  prevCursor?: string;
+  nextCursor?: string;
 }
 
 export const fetchPoaps = async (address: string): Promise<Poap[]> => {
-    const poapsResponse = await fetchAllPagesQuery<PoapsResponse>(fetchPoapsQuery, { address });
-    return poapsResponse.flatMap((p) => p.Poaps.Poap);
+  const poapsResponse = await fetchAllPagesQuery<PoapsResponse>(
+    fetchPoapsQuery,
+    { address }
+  );
+  return poapsResponse.flatMap((p) => p.Poaps.Poap);
 };

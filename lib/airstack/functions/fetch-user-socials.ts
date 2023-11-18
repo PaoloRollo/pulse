@@ -1,10 +1,12 @@
-import { gql } from '@apollo/client/core/index.js';
+import { gql } from "@apollo/client/core/index.js";
 
-import { fetchAllPagesQuery } from '../utils.js';
+import { fetchAllPagesQuery } from "../utils";
 
 const GetUserSocials = gql`
   query GetUserSocials($addresses: [Identity!]) {
-    Socials(input: { filter: { identity: { _in: $addresses } }, blockchain: ethereum }) {
+    Socials(
+      input: { filter: { identity: { _in: $addresses } }, blockchain: ethereum }
+    ) {
       Social {
         userAddress
         dappName
@@ -18,22 +20,27 @@ const GetUserSocials = gql`
 `;
 
 export interface SocialsResponse {
-    Socials: {
-        Social: Social[];
-    };
+  Socials: {
+    Social: Social[];
+  };
 }
 
 export interface Social {
-    userAddress: string;
-    dappName: string;
-    profileName: string;
-    profileImage: string;
-    profileDisplayName: string;
-    profileBio: string;
-    userId: string;
+  userAddress: string;
+  dappName: string;
+  profileName: string;
+  profileImage: string;
+  profileDisplayName: string;
+  profileBio: string;
+  userId: string;
 }
 
-export const fetchAddressSocialProfiles = async (address: string): Promise<Social[]> => {
-    const socialsResponse = await fetchAllPagesQuery<SocialsResponse>(GetUserSocials, { addresses: [address] });
-    return socialsResponse.flatMap((s) => s.Socials.Social);
+export const fetchAddressSocialProfiles = async (
+  address: string
+): Promise<Social[]> => {
+  const socialsResponse = await fetchAllPagesQuery<SocialsResponse>(
+    GetUserSocials,
+    { addresses: [address] }
+  );
+  return socialsResponse.flatMap((s) => s.Socials.Social);
 };

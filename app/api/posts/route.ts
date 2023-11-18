@@ -1,19 +1,21 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getPostsForYou } from "@/lib/pinecone/utils";
+
+export const maxDuration = 300;
 
 export async function GET(req: NextRequest) {
-  // TODO: add personalized content here
   const address = req.nextUrl.searchParams.get("address");
-  const page = req.nextUrl.searchParams.get("page") || "0";
-  const supabase = createClient(
-    process.env.SUPABASE_URL as string,
-    process.env.SUPABASE_SERVICE_KEY as string
+  const walletAddress = req.nextUrl.searchParams.get("walletAddress");
+
+  const posts = await getPostsForYou(address!, walletAddress || address!);
+
+  return Response.json(
+    {
+      posts: posts.map(({ content_id, cleaned_text }) => ({
+        content_id,
+        cleaned_text,
+      })),
+    },
+    { status: 200 }
   );
-
-  const { data } = await supabase
-    .from("unified_posts")
-    .select("content_id,cleaned_text")
-    .limit(100);
-
-  return Response.json({ posts: data }, { status: 200 });
 }
