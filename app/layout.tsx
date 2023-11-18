@@ -32,7 +32,6 @@ const satoshi = localFont({
     },
   ],
   display: "auto",
-  variable: "--font-satoshi",
 });
 
 export const metadata: Metadata = {
@@ -50,7 +49,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/logo-pulse.png" sizes="any" />
       </head>
-      <body className={`overflow-x-hidden`}>
+      <body className={`${satoshi.className} overflow-x-hidden`}>
         <Providers>{children}</Providers>
       </body>
     </html>
