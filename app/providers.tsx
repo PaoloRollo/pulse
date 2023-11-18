@@ -9,6 +9,7 @@ import { PrivyWagmiConnector } from "@privy-io/wagmi-connector";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { configureChains } from "wagmi";
 import { init } from "@airstack/airstack-react";
+import StyledComponentsRegistry from "./styled-components-registry";
 
 init(process.env.NEXT_PUBLIC_AIRSTACK_API_KEY as string);
 
@@ -30,7 +31,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         loginMethods: ["email", "google", "github", "apple"],
         appearance: {
           theme: "light",
-          accentColor: "#676FFF",
         },
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
@@ -46,10 +46,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     >
       <PrivyWagmiConnector wagmiChainsConfig={configureChainsConfig}>
         <SmartAccountProvider>
-          <ThemeProvider theme={lightTheme}>
-            <ThorinGlobalStyles />
-            {children}
-          </ThemeProvider>
+          <StyledComponentsRegistry>
+            <ThemeProvider theme={lightTheme}>
+              <ThorinGlobalStyles />
+              {children}
+            </ThemeProvider>
+          </StyledComponentsRegistry>
         </SmartAccountProvider>
       </PrivyWagmiConnector>
     </PrivyProvider>

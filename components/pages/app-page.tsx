@@ -197,14 +197,6 @@ export default function AppPage() {
       if (notificationPermission) {
         const token = await localforage.getItem("pulse_fcm_token");
 
-        // if (!token) {
-        //   const messaging = getMessaging(firebaseApp);
-        //   const fcmToken = getToken(messaging, {
-        //     vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY as string,
-        //   });
-        //   localforage.setItem("pulse_fcm_token", fcmToken);
-        // }
-
         pushStream.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
           console.log(data);
           const { body, title } = data.message.notification;
@@ -242,6 +234,7 @@ export default function AppPage() {
           subscription.channel === process.env.NEXT_PUBLIC_CHANNEL_DELEGATE
         );
       });
+      console.log(process.env.NEXT_PUBLIC_CHANNEL_DELEGATE);
       if (!channel) {
         await pushAPIUser.notification.subscribe(
           process.env.NEXT_PUBLIC_CHANNEL_ADDRESS as string
