@@ -27,7 +27,6 @@ export const getAlreadyReactedPosts = async (
     console.error(error);
     throw error;
   }
-  console.log(data);
   return data ?? [];
 };
 
