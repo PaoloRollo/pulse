@@ -2,33 +2,27 @@
 import { useSmartAccount } from "@/hooks/smart-account-context";
 import { publicClient } from "@/lib/viem-client";
 import {
-  AeroplaneSVG,
   Button,
   Card,
-  CheckSVG,
   CounterClockwiseArrowSVG,
   CrossSVG,
   Dialog,
-  ExitSVG,
   FlameSVG,
   HeartSVG,
   Input,
-  LeftArrowSVG,
-  PersonSVG,
-  Profile,
-  Skeleton,
-  SkeletonGroup,
-  Tooltip,
+  Typography,
+  WalletSVG,
 } from "@ensdomains/thorin";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { CONSTANTS, PushAPI } from "@pushprotocol/restapi";
 import { PushStream } from "@pushprotocol/restapi/src/lib/pushstream/PushStream";
-import { BellIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import TinderCard from "react-tinder-card";
 import localforage from "localforage";
+import Navbar from "../shared/navbar";
+import LoadingAppPage from "../loadings/loading-app-page";
 
 const db = [
   {
@@ -73,7 +67,7 @@ export default function AppPage() {
     useState<boolean>(false);
   const [permission, setPermission] = useState<boolean>(false);
   const currentIndexRef = useRef(currentIndex);
-  const [showModal, setShowModal] = useState<boolean>(true);
+  const [showModal, setShowModal] = useState<boolean>(false);
   const [subdomain, setSubdomain] = useState<string>("");
   const [currentStep, setCurrentStep] = useState<number>(0);
 
@@ -251,177 +245,101 @@ export default function AppPage() {
   const isLoading = !smartAccountAddress || !smartAccountProvider;
 
   if (isLoading) {
-    return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center">
-        <Skeleton loading={true}>
-          <Card className="h-[250px] w-[250px]"></Card>
-        </Skeleton>
-        <SkeletonGroup loading={true}>
-          <div className="flex items-center absolute bottom-8 space-x-4">
-            <Skeleton>
-              <Button shape="circle" colorStyle="yellowPrimary">
-                <LeftArrowSVG />
-              </Button>
-            </Skeleton>
-            <Skeleton className="rounded-full">
-              <Button shape="circle" colorStyle="redPrimary">
-                <CrossSVG />
-              </Button>
-            </Skeleton>
-            <Skeleton>
-              <Button shape="circle" colorStyle="greenPrimary">
-                <CheckSVG />
-              </Button>
-            </Skeleton>
-            <Skeleton>
-              <Button shape="circle">
-                <FlameSVG />
-              </Button>
-            </Skeleton>
-          </div>
-        </SkeletonGroup>
-      </div>
-    );
+    return <LoadingAppPage />;
   }
 
   return (
     <>
-      <div className="h-screen w-screen flex flex-col items-center justify-center">
-        <div className="flex space-x-2 items-center absolute top-4 right-4">
-          <Profile
-            address={smartAccountAddress}
-            className="cursor-pointer hover:-translate-y-0.5 transition-transform"
-            dropdownItems={[
-              {
-                label: "Profile",
-                onClick: () =>
-                  router.push(`/app/profile/${smartAccountAddress}`),
-                icon: <PersonSVG />,
-              },
-              {
-                label: "Chats",
-                onClick: () => router.push(`/app/chats`),
-                icon: <AeroplaneSVG />,
-              },
-              {
-                label: "Logout",
-                onClick: () => logout(),
-                icon: <ExitSVG />,
-                color: "red",
-              },
-            ]}
-          />
-          <Button
-            disabled={!pushStream}
-            shape="circle"
-            onClick={() => {
-              !pushStreamConnected && subscribeToNotifications();
-            }}
-            colorStyle={!pushStreamConnected ? "bluePrimary" : "greenPrimary"}
-          >
-            <BellIcon />
-          </Button>
+      <div className="h-screen w-screen bg-[#EEF5FF] overflow-hidden">
+        <Navbar />
+        <div className="flex items-center justify-center h-[500px] overflow-hidden">
+          {db.map((character, index) => (
+            <TinderCard
+              ref={childRefs[index]}
+              className="swipe"
+              key={character.name}
+              preventSwipe={["down", "up"]}
+              swipeRequirementType="position"
+              onSwipe={(dir) => swiped(dir, character.name, index)}
+              onCardLeftScreen={() => outOfFrame(character.name, index)}
+            >
+              <Card
+                className="h-[449px] w-[313px] flex items-center justify-center"
+                id={character.name}
+              >
+                <h3 className="select-none text-center">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem
+                  ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum
+                  dolor sit amet, consectetur adipiscing elit.
+                </h3>
+              </Card>
+            </TinderCard>
+          ))}
         </div>
-        {db.map((character, index) => (
-          <TinderCard
-            ref={childRefs[index]}
-            className="swipe"
-            key={character.name}
-            preventSwipe={["down", "up"]}
-            swipeRequirementType="position"
-            onSwipe={(dir) => swiped(dir, character.name, index)}
-            onCardLeftScreen={() => outOfFrame(character.name, index)}
-          >
-            <Card
-              className="h-[250px] w-[250px] flex items-center justify-center"
-              id={character.name}
-            >
-              <h3 className="select-none text-center">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem
-                ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum
-                dolor sit amet, consectetur adipiscing elit.
-              </h3>
-            </Card>
-          </TinderCard>
-        ))}
-        <div className="flex items-center absolute bottom-8 space-x-4">
-          <Tooltip
-            additionalGap={0}
-            content={<div className="pr-1">Go back</div>}
-            mobilePlacement="top"
-            placement="top"
-            width={"auto"}
-          >
+        <div className="grid grid-cols-3 absolute bottom-16 left-1/2 -translate-x-1/2 gap-8 mx-auto w-[304px] ">
+          <div className="h-[140px] flex flex-col justify-end items-center space-y-2">
             <Button
-              disabled={!canGoBack}
-              onClick={() => goBack()}
+              // shadow
               shape="circle"
-              colorStyle="yellowPrimary"
-            >
-              <CounterClockwiseArrowSVG />
-            </Button>
-          </Tooltip>
-          <Tooltip
-            additionalGap={0}
-            content={<div className="pr-1">Skip content</div>}
-            mobilePlacement="top"
-            placement="top"
-            width={"auto"}
-          >
-            <Button
+              disabled={!canSwipe}
               onClick={() => swipe("left")}
-              shape="circle"
-              disabled={!canSwipe}
-              colorStyle="redPrimary"
+              style={{ height: "80px", width: "80px" }}
+              colorStyle="greyPrimary"
             >
-              <CrossSVG />
+              <CrossSVG style={{ height: "32px", width: "32px" }} />
             </Button>
-          </Tooltip>
-          <Tooltip
-            additionalGap={0}
-            content={<div className="pr-1">Like content</div>}
-            mobilePlacement="top"
-            placement="top"
-            width={"auto"}
-          >
+            <Typography color="grey">Skip</Typography>
+          </div>
+          <div className="h-[140px] flex flex-col items-center space-y-2">
             <Button
-              onClick={() => swipe("right")}
+              shadow
               shape="circle"
+              colorStyle="pinkPrimary"
               disabled={!canSwipe}
-              colorStyle="greenPrimary"
-            >
-              <CheckSVG />
-            </Button>
-          </Tooltip>
-          <Tooltip
-            additionalGap={0}
-            content={<div className="pr-1">Love!</div>}
-            mobilePlacement="top"
-            placement="top"
-            width={"auto"}
-          >
-            <Button
               onClick={() => swipe("up")}
-              disabled={!canSwipe}
-              shape="circle"
+              style={{ height: "80px", width: "80px" }}
             >
-              <HeartSVG className="pr-0.5" />
+              <FlameSVG style={{ height: "32px", width: "32px" }} />
             </Button>
-          </Tooltip>
+            <Typography color="pink">Love</Typography>
+          </div>
+          <div className="h-[140px] flex flex-col items-center justify-end space-y-2">
+            <Button
+              shadow
+              shape="circle"
+              disabled={!canSwipe}
+              onClick={() => swipe("right")}
+              style={{ height: "80px", width: "80px" }}
+            >
+              <HeartSVG style={{ height: "32px", width: "32px" }} />
+            </Button>
+            <Typography color="blue">Like</Typography>
+          </div>
+        </div>
+        <div className="flex items-center justify-center absolute bottom-8 left-1/2 -translate-x-1/2">
+          <Button
+            disabled={!canGoBack}
+            colorStyle="background"
+            onClick={() => goBack()}
+            size="small"
+            prefix={<CounterClockwiseArrowSVG />}
+          >
+            Undo
+          </Button>
         </div>
       </div>
       <Dialog
         open={showModal}
         variant="actionable"
-        currentStep={currentStep}
-        stepCount={2}
+        // currentStep={currentStep}
+        // stepCount={2}
         onDismiss={() => {
           setShowModal(true);
         }}
       >
         {currentStep === 0 && (
           <>
-            <Dialog.Heading title="Add an existing wallet" />
+            <Dialog.Heading title="Add wallet" />
             <div className="w-full md:w-[500px]">
               <p className="mb-4 text-center">
                 We will use the social graph from this wallet to ensure you a
@@ -429,13 +347,14 @@ export default function AppPage() {
               </p>
               {!connectedWallet ? (
                 <Button
-                  colorStyle="blueSecondary"
+                  prefix={<WalletSVG />}
+                  colorStyle="bluePrimary"
                   onClick={() => connectWallet()}
                 >
                   Connect Wallet
                 </Button>
               ) : (
-                <Button colorStyle="blueSecondary">
+                <Button prefix={<WalletSVG />} colorStyle="bluePrimary">
                   {connectedWallet.ens ||
                     connectedWallet.address.slice(0, 8) +
                       "..." +
@@ -445,17 +364,22 @@ export default function AppPage() {
             </div>
             <Dialog.Footer
               trailing={
-                <Button onClick={() => setCurrentStep(1)}>Continue</Button>
+                <Button
+                  colorStyle="blueSecondary"
+                  onClick={() => setCurrentStep(1)}
+                >
+                  {connectedWallet ? "Continue" : "Skip"}
+                </Button>
               }
             />
           </>
         )}
         {currentStep === 1 && (
           <>
-            <Dialog.Heading title="Select your pulse.eth subdomain" />
+            <Dialog.Heading title="Create subdomain" />
             <div className="w-full md:w-[500px]">
               <Input
-                label="Your subdomain"
+                label=""
                 placeholder="username"
                 suffix=".pulse.eth"
                 value={subdomain}
@@ -463,12 +387,11 @@ export default function AppPage() {
               />
             </div>
             <Dialog.Footer
-              leading={<Button onClick={() => setCurrentStep(0)}>Back</Button>}
               trailing={
                 <Button
                   disabled={!subdomain}
                   onClick={() => setShowModal(false)}
-                  colorStyle="greenPrimary"
+                  colorStyle="blueSecondary"
                 >
                   Confirm
                 </Button>

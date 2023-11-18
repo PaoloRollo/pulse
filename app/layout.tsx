@@ -45,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" className="light overflow-x-hidden">
       <head>
         <link rel="icon" href="/logo-pulse.png" sizes="any" />
       </head>
