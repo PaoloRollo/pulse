@@ -47,7 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <head>
-        <link rel="icon" href="/logo-pulse.svg" sizes="any" />
+        <link rel="icon" href="/logo-pulse.png" sizes="any" />
       </head>
       <body className={satoshi.className}>
         <Providers>{children}</Providers>
