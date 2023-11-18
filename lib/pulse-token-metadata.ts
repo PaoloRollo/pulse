@@ -26,7 +26,7 @@ async function getExampleImage(): Promise<Blob> {
 
 async function getDynamicSVGImage(params: DynamicSVGParameters): Promise<Blob> {
   // Read the SVG template from a local file
-  const svgTemplatePath = 'path/to/your/template.svg'; // TODO change it
+  const svgTemplatePath = '../utils/NFT-template.svg';
   const svgTemplate = fs.readFileSync(svgTemplatePath, 'utf-8');
 
   // Load the SVG template using Cheerio
