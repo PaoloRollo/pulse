@@ -7,7 +7,8 @@ import "@openzeppelin/contracts@5.0.0/token/ERC1155/extensions/ERC1155Supply.sol
 import "@openzeppelin/contracts@5.0.0/token/ERC1155/extensions/ERC1155URIStorage.sol";
 import { IEAS, AttestationRequest, AttestationRequestData } from "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import { NO_EXPIRATION_TIME, EMPTY_UID } from "@ethereum-attestation-service/eas-contracts/contracts/Common.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "../ECDSALibrary.sol";
+
 
 contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
 
@@ -21,7 +22,8 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
     uint256 public freeSuperlikesCounter;
     uint256 public superlikePrice;
     address public ownerWallet;
-    using ECDSA for bytes32;
+    address public thesigner;
+    using ECDSALibrary for bytes32;
 
     mapping(address=>bool) public authorizedUsers;
     mapping(address=>uint256)public freeSuperlikes;
@@ -59,17 +61,21 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
     function mintWithSignature(address account, uint256 id, bytes memory data, bytes memory EASData, bytes memory signature) payable public {
 
         bytes32 messageHash = getMessageHash(account, id, EASData);
-        address recoveredSigner = ECDSA.recover(messageHash, signature);
+
+        bytes32 messageDigest = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
+        );        
+        address recoveredSigner = ECDSALibrary.recover(messageDigest, signature);
 
         require((recoveredSigner == ownerWallet), "invalid signature");
         
         (address recoveredAccount, uint256 recoveredTokenId, bytes memory recoveredEASData) = _extractParametersFromSignature(signature);
-        require((recoveredAccount == account && recoveredTokenId == id && keccak256(EASData) == keccak256(recoveredEASData)), "Parameters mismatch");
         
         if(freeSuperlikes[account]>freeSuperlikesCounter) {
             require(msg.value == superlikePrice);
         }
         _mint(account, id, 1, data);
+        
         freeSuperlikes[account] +=1;
         (bool mintEAS, uint256 contentMintAmount) = _checkEASEligibility(id);
         if (mintEAS) {
@@ -123,7 +129,7 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
     }
 
     function getMessageHash(address user, uint256 tokenId, bytes memory EASData)
-        internal
+        public
         pure
         returns (bytes32)
     {
