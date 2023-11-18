@@ -7,7 +7,6 @@ import "@openzeppelin/contracts@5.0.0/token/ERC1155/extensions/ERC1155Supply.sol
 import "@openzeppelin/contracts@5.0.0/token/ERC1155/extensions/ERC1155URIStorage.sol";
 import { IEAS, AttestationRequest, AttestationRequestData } from "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import { NO_EXPIRATION_TIME, EMPTY_UID } from "@ethereum-attestation-service/eas-contracts/contracts/Common.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
 
@@ -20,10 +19,9 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
     bytes32 public schema; 
     uint256 public freeSuperlikesCounter;
     uint256 public superlikePrice;
-    address public ownerWallet;
-    using ECDSA for bytes32;
 
     mapping(address=>bool) public authorizedUsers;
+    mapping(uint256=>bool)public tokenIdsExist;
     mapping(address=>uint256)public freeSuperlikes;
 
     receive() external payable {}
@@ -36,7 +34,6 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
         schema = _schema;
         freeSuperlikesCounter = 3;
         superlikePrice = 0.001 ether;
-        ownerWallet = initialOwner;
     }
 
     function authorizeUser(address user, bool authorized) external onlyOwner {
@@ -56,16 +53,24 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
         return(superlikePrice);
     }
 
-    function mintWithSignature(address account, uint256 id, bytes memory data, bytes memory EASData, bytes memory signature) payable public {
+    function mintAndSetUri(address account, uint256 id, uint256 amount, bytes memory data, string memory newuri) public onlyOwner {
+        _mint(account, id, amount, data);
+        setURI(id, newuri);
+        tokenIdsExist[id]=true;
+    }
 
-        bytes32 messageHash = getMessageHash(account, id, EASData);
-        address recoveredSigner = ECDSA.recover(messageHash, signature);
-
-        require((recoveredSigner == ownerWallet), "invalid signature");
-        
-        (address recoveredAccount, uint256 recoveredTokenId, bytes memory recoveredEASData) = _extractParametersFromSignature(signature);
-        require((recoveredAccount == account && recoveredTokenId == id && keccak256(EASData) == keccak256(recoveredEASData)), "Parameters mismatch");
-        
+    function mint(address account, uint256 id, bytes memory data, bytes memory EASData) payable public {
+        if (msg.sender != account) {
+            revert InvalidUser();
+        }
+        bool isAuthorized = authorizedUsers[account];
+        if (!isAuthorized) {
+            revert InvalidUser();
+        }
+        bool tokenExist = tokenIdsExist[id];
+        if (!tokenExist) {
+            revert InvalidTokenId();
+        }
         if(freeSuperlikes[account]>freeSuperlikesCounter) {
             require(msg.value == superlikePrice);
         }
@@ -120,25 +125,5 @@ contract PulseToken is ERC1155, Ownable, ERC1155Supply, ERC1155URIStorage {
             })
             })
         );
-    }
-
-    function getMessageHash(address user, uint256 tokenId, bytes memory EASData)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return keccak256(abi.encodePacked(user, tokenId, EASData));
-    }
-
-    function _extractParametersFromSignature(bytes memory signature)
-        internal
-        pure
-        returns (address account, uint256 tokenId, bytes memory EASData)
-    {
-        assembly {
-            account := mload(add(signature, 32))
-            tokenId := mload(add(signature, 64))
-            EASData := mload(add(signature, 96))
-        }
     }
 }
