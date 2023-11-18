@@ -1,6 +1,19 @@
 import supabase from './index.js';
 import { UnifiedPost } from './types/ex-supabase';
 
+export const getAlreadyReactedPosts = async (address: string, limit = 100, page = 0): Promise<string[]> => {
+  const { data, error } = await supabase
+      .from('reactions')
+      .select('address,content_id').eq("address", address)
+      .range(page * limit, (page + 1) * limit - 1)
+      .limit(limit);
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  return data ? data.map(d => d.content_id) : [];
+};
+
 export const getPosts = async (limit = 100, page = 0): Promise<UnifiedPost[]> => {
   const { data, error } = await supabase
     .from('unified_posts')
