@@ -72,10 +72,23 @@ export default function AppPage() {
 
   const canSwipe = currentIndex >= 0;
 
+  const react = async (direction: string, postId: string) => {
+    const reaction =
+      direction === "left" ? "SKIP" : direction === "up" ? "FIRE" : "LIKE";
+    await fetch(`/api/posts/${postId}`, {
+      method: "POST",
+      body: JSON.stringify({
+        address: smartAccountAddress,
+        reaction,
+      }),
+    });
+  };
+
   // set last direction and decrease current index
   const swiped = (direction: any, nameToDelete: string, index: number) => {
     setLastDirection(direction);
     updateCurrentIndex(index - 1);
+    react(direction, nameToDelete);
   };
 
   const outOfFrame = (name: string, idx: number) => {

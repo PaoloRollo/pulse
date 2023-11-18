@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export async function GET(req: NextRequest) {
+  // TODO: add personalized content here
   const address = req.nextUrl.searchParams.get("address");
   const page = req.nextUrl.searchParams.get("page") || "0";
   const supabase = createClient(
