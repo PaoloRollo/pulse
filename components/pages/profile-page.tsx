@@ -4,7 +4,6 @@ import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useEnsName } from "wagmi";
-import { publicClient } from "@/lib/viem-client";
 import { useLazyQuery } from "@airstack/airstack-react";
 import Navbar from "../shared/navbar";
 import LoadingNavbar from "../loadings/loading-navbar";
@@ -12,6 +11,7 @@ import {
   Avatar,
   Button,
   Card,
+  Dialog,
   FlameSVG,
   Heading,
   HeartSVG,
@@ -71,6 +71,7 @@ export default function ProfilePage({
   const [pulseSubdomain, setPulseSubdomain] = useState<string | undefined>(
     undefined
   );
+  const [currentData, setCurrentData] = useState<any>(null);
 
   // If the user is not authenticated, redirect them back to the landing page
   useEffect(() => {
@@ -117,18 +118,6 @@ export default function ProfilePage({
   };
 
   const getEnsFromWallets = async () => {
-    const mappedWallets = await Promise.all(
-      wallets.map(async (wallet) => {
-        const ens = await publicClient.getEnsName({
-          address: wallet.address as `0x${string}`,
-        });
-        return {
-          address: wallet.address,
-          ens: ens,
-        };
-      })
-    );
-    setMappedWallets(mappedWallets);
     await airstackFetch({
       addresses: [profileAddress].concat(
         wallets.map((wallet) => wallet.address)
@@ -213,7 +202,9 @@ export default function ProfilePage({
                       @{post.unified_posts.author_name}
                     </h1>
                   </div>
-                  <Typography>{post.unified_posts.cleaned_text}</Typography>
+                  <Typography className="my-4">
+                    {post.unified_posts.cleaned_text}
+                  </Typography>
                   <div className="flex items-center space-x-2">
                     {post.unified_posts.source === "Farcaster" ? (
                       <img
@@ -253,39 +244,138 @@ export default function ProfilePage({
           {postsFilter === "fires" && (
             <div className="flex flex-col space-y-4 mt-3">
               {firePosts.map((post) => (
-                <Card key={post.id}>
-                  <div className="flex items-center space-x-2">
-                    <div className="h-10 w-10">
-                      <Avatar
-                        src={post.unified_posts.author_profile_image}
-                        label={post.unified_posts.author_name}
-                        height={40}
-                        width={40}
-                      />
+                <Card key={post.id} className="!pb-0 !px-0">
+                  <div className="px-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="h-10 w-10">
+                        <Avatar
+                          src={post.unified_posts.author_profile_image}
+                          label={post.unified_posts.author_name}
+                          height={40}
+                          width={40}
+                        />
+                      </div>
+                      <h1 className="font-bold">
+                        @{post.unified_posts.author_name}
+                      </h1>
                     </div>
-                    <h1 className="font-bold">
-                      @{post.unified_posts.author_name}
-                    </h1>
+                    <Typography className="my-4">
+                      {post.unified_posts.cleaned_text}
+                    </Typography>
+                    <div className="flex items-center space-x-2">
+                      {post.unified_posts.source === "Farcaster" ? (
+                        <img
+                          src="/see-on-farcaster.svg"
+                          className="h-5 cursor-pointer"
+                          onClick={() => {
+                            typeof window !== "undefined" &&
+                              window.open(
+                                `https://flink.fyi/${post.unified_posts.author_id}/${post.unified_posts.content_id}`,
+                                "_blank"
+                              );
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src="/see-on-lens.svg"
+                          className="h-5 cursor-pointer"
+                          onClick={() => {
+                            typeof window !== "undefined" &&
+                              window.open(
+                                `https://hey.xyz/posts/${post.unified_posts.content_id}`,
+                                "_blank"
+                              );
+                          }}
+                        />
+                      )}
+                      -{" "}
+                      <p className="text-xs text-[#9B9BA7]">
+                        {new Date(
+                          post.unified_posts.publish_date
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                  <Typography>{post.unified_posts.cleaned_text}</Typography>
-                  <div className="flex items-center space-x-2">
-                    {post.unified_posts.source === "Farcaster" ? (
-                      <img src="/see-on-farcaster.svg" className="h-5" />
-                    ) : (
-                      <img src="/see-on-lens.svg" className="h-5" />
-                    )}
-                    <p className="text-xs text-[#9B9BA7]">
-                      {new Date(
-                        post.unified_posts.publish_date
-                      ).toLocaleDateString()}
-                    </p>
-                  </div>
+                  <Button
+                    colorStyle="pinkPrimary"
+                    prefix={<FlameSVG />}
+                    className="!rounded-t-none"
+                    onClick={() => setCurrentData(post)}
+                  >
+                    Check NFT
+                  </Button>
                 </Card>
               ))}
             </div>
           )}
         </div>
       </div>
+      <Dialog
+        open={currentData !== null}
+        variant="blank"
+        onDismiss={() => setCurrentData(null)}
+      >
+        <div className="h-[300px] w-[300px] bg-[#D52E7E] absolute top-1/2 -translate-y-1/2 rounded-lg p-4 text-white flex flex-col justify-between">
+          {currentData && (
+            <>
+              <div className="flex flex-col">
+                <div className="flex items-center space-x-2">
+                  <div className="h-10 w-10">
+                    <Avatar
+                      src={currentData.unified_posts.author_profile_image}
+                      label={currentData.unified_posts.author_name}
+                      height={40}
+                      width={40}
+                    />
+                  </div>
+                  <h1 className="font-bold">
+                    @{currentData.unified_posts.author_name}
+                  </h1>
+                </div>
+
+                <Typography className="my-4 !text-white">
+                  {currentData.unified_posts.cleaned_text}
+                </Typography>
+              </div>
+              <div className="mt-auto">
+                <div className="flex items-center space-x-2">
+                  {currentData.unified_posts.source === "Farcaster" ? (
+                    <img
+                      src="/see-on-farcaster.svg"
+                      className="h-5 cursor-pointer"
+                      onClick={() => {
+                        typeof window !== "undefined" &&
+                          window.open(
+                            `https://flink.fyi/${currentData.unified_posts.author_id}/${currentData.unified_posts.content_id}`,
+                            "_blank"
+                          );
+                      }}
+                    />
+                  ) : (
+                    <img
+                      src="/see-on-lens.svg"
+                      className="h-5 cursor-pointer"
+                      onClick={() => {
+                        typeof window !== "undefined" &&
+                          window.open(
+                            `https://hey.xyz/posts/${currentData.unified_posts.content_id}`,
+                            "_blank"
+                          );
+                      }}
+                    />
+                  )}
+                  <p className="text-xs text-white opacity-40">
+                    -{" "}
+                    {new Date(
+                      currentData.unified_posts.publish_date
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </Dialog>
     </>
   );
 }
