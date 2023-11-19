@@ -35,9 +35,6 @@ export const generateProfileQueries = async (
         .join('---')}\n\nContent Super Liked: ${postReactions
         .filter((p) => p.reaction === ReactionType.FIRE)
         .map((p) => p.cleanedText)
-        .join('---')}\n\nContent Disliked/Skipped: ${postReactions
-        .filter((p) => p.reaction === ReactionType.SKIP)
-        .map((p) => p.cleanedText)
         .join('---')}\n\n`;
     return queryOpenAI(content);
 };
@@ -67,7 +64,7 @@ export const getPostsForYou = async (privyAddress: string, address: string): Pro
             )
         );
         if (result?.matches.length > 0) {
-            return await getPostsByIds(result.matches.map((r) => r.id));
+            return await getPostsByIds([...new Set(result.matches.map((r) => r.id))]);
         }
         return [];
     } catch (e) {
