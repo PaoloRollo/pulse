@@ -52,8 +52,6 @@ export const getPostsForYou = async (privyAddress: string, address: string): Pro
             }))
         )
     );
-    console.log(postReactions);
-    console.log(query);
     try {
         const pineconeIndex = await initPineconeIndex('posts');
         const result = await queryPineconeIndex(
