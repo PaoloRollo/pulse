@@ -41,6 +41,10 @@ export const generateProfileQueries = async (
 
 export const getPostsForYou = async (privyAddress: string, address: string): Promise<UnifiedPost[]> => {
     const postReactions = await getAlreadyReactedPosts(privyAddress, 500);
+    const postReactionsIds = postReactions.map(
+        // eslint-disable-next-line camelcase
+        (p: { content_id: { content_id: string; cleaned_text: string }; reaction: ReactionType }) =>
+            p.content_id.content_id)
     const query = await queryOpenAI(
         await generateProfileQueries(
             address,
@@ -57,14 +61,11 @@ export const getPostsForYou = async (privyAddress: string, address: string): Pro
         const result = await queryPineconeIndex(
             pineconeIndex,
             [query.replace(/["'\\]/g, '').trim()],
-            postReactions.map(
-                // eslint-disable-next-line camelcase
-                (p: { content_id: { content_id: string; cleaned_text: string }; reaction: ReactionType }) =>
-                    p.content_id.content_id
-            )
+            postReactionsIds
         );
         if (result?.matches.length > 0) {
-            return await getPostsByIds([...new Set(result.matches.map((r) => r.id))]);
+            console.log(result.matches);
+            return (await getPostsByIds([...new Set(result.matches.map((r) => r.id))].filter(p => !postReactionsIds.includes(p))));
         }
         return [];
     } catch (e) {
