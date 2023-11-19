@@ -97,6 +97,7 @@ export default function ProfilePage({
     const response = await fetch(`/api/auth/${profileAddress}`);
 
     const { ens } = await response.json();
+
     setPulseSubdomain(ens || undefined);
   };
 

@@ -39,9 +39,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         defaultChain: baseGoerli,
       }}
       onSuccess={(user, isNewUser) => {
-        if (isNewUser) {
-          router.push("/onboarding");
-        }
+        router.push("/app");
       }}
     >
       <PrivyWagmiConnector wagmiChainsConfig={configureChainsConfig}>

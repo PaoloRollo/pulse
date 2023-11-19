@@ -24,6 +24,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import TinderCard from "react-tinder-card";
 import Navbar from "../shared/navbar";
 import LoadingAppPage from "../loadings/loading-app-page";
+import { NFT_ADDRESS } from "@/lib/constants";
+import { pulseTokenABI } from "@/utils/pulse-token-1155-abi";
+import { encodeFunctionData } from "viem";
 
 export default function AppPage() {
   const router = useRouter();
@@ -87,20 +90,20 @@ export default function AppPage() {
         }),
       });
       const { easData, signature, count, nonHashed } = await response.json();
-      // if (easData && signature && count) {
-      //   const data = encodeFunctionData({
-      //     abi: pulseTokenABI,
-      //     functionName: "mintWithSignature",
-      //     args: [smartAccountAddress, BigInt(count), "0x", easData, signature],
-      //   });
+      if (easData && signature && count) {
+        const data = encodeFunctionData({
+          abi: pulseTokenABI,
+          functionName: "mintWithSignature",
+          args: [smartAccountAddress, BigInt(count), "0x", easData, signature],
+        });
 
-      //   await sendSponsoredUserOperation({
-      //     from: smartAccountAddress!,
-      //     to: NFT_ADDRESS,
-      //     data,
-      //     // value: BigInt(0),
-      //   });
-      // }
+        await sendSponsoredUserOperation({
+          from: smartAccountAddress!,
+          to: NFT_ADDRESS,
+          data,
+          // value: BigInt(0),
+        });
+      }
     } catch (error) {
       console.error(error);
     }
@@ -374,7 +377,7 @@ export default function AppPage() {
             >
               <FlameSVG style={{ height: "32px", width: "32px" }} />
             </Button>
-            <Typography color="pink">Love</Typography>
+            <Typography color="pink">Fire</Typography>
           </div>
           <div className="h-[140px] flex flex-col items-center justify-end space-y-2">
             <Button

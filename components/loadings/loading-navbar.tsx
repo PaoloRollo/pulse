@@ -5,14 +5,12 @@ export default function LoadingNavbar() {
   return (
     <SkeletonGroup loading>
       <div className="w-full flex items-center justify-between px-6 py-3 border border-b-1">
-        <Skeleton>
-          <Image
-            src={"/logo-pulse.svg"}
-            alt="Pulse logo"
-            height={40}
-            width={40}
-          />
-        </Skeleton>
+        <Image
+          src={"/navbar-logo.png"}
+          alt="Pulse logo"
+          height={40}
+          width={120}
+        />
         <Skeleton>
           <Profile
             address={""}

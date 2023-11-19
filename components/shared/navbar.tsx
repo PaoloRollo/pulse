@@ -27,10 +27,10 @@ export default function Navbar() {
   return (
     <div className="w-full flex items-center justify-between px-6 py-3 border border-b-1 z-50">
       <Image
-        src={"/logo-pulse.svg"}
+        src={"/navbar-logo.png"}
         alt="Pulse logo"
         height={40}
-        width={40}
+        width={120}
         onClick={() => router.push("/app")}
         className="cursor-pointer"
       />
