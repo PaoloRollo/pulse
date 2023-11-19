@@ -87,6 +87,7 @@ export default function AppPage() {
         body: JSON.stringify({
           address: smartAccountAddress,
           reaction,
+          notificationAddress: smartAccountSigner?.inner?.account.address,
         }),
       });
       const { easData, signature, count, nonHashed } = await response.json();
@@ -276,6 +277,7 @@ export default function AppPage() {
   const fetchNotificationStatus = async () => {
     try {
       console.log("fetching");
+      console.log(smartAccountSigner?.inner?.account.address);
       const pushAPIUser = await PushAPI.initialize(smartAccountSigner?.inner, {
         env: CONSTANTS.ENV.STAGING,
       });

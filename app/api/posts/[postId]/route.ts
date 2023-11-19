@@ -12,7 +12,7 @@ export async function POST(
   params: { params: { postId: string } }
 ) {
   const { postId } = params.params;
-  const { address, reaction } = await req.json();
+  const { address, reaction, notificationAddress } = await req.json();
 
   if (!["GO_BACK", "LIKE", "FIRE", "SKIP"].includes(reaction)) {
     return Response.json({ error: "invalid reaction." }, { status: 400 });
@@ -99,12 +99,17 @@ export async function POST(
         env: CONSTANTS.ENV.STAGING,
       });
 
-      await pushAPI.channel.send([`*`], {
-        notification: {
-          title: "New NFT minted!",
-          body: "You just minted a new NFT!",
-        },
-      });
+      const pushProtocolResponse = await pushAPI.channel.send(
+        [`eip155:11155111:${notificationAddress}`],
+        {
+          notification: {
+            title: "New NFT minted!",
+            body: "You just minted a new NFT!",
+          },
+        }
+      );
+
+      console.log(pushProtocolResponse);
 
       return Response.json(
         { easData, signature, count, nonHashed },
