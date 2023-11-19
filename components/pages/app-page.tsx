@@ -162,17 +162,20 @@ export default function AppPage() {
 
   useEffect(() => {
     if (smartAccountSigner) {
-      fetchNotificationStatus();
+      fetchNotificationStatus().then(async () => {
+        let notificationPermission = Notification.permission === "granted";
+
+        if (!notificationPermission) {
+          notificationPermission =
+            (await Notification.requestPermission()) === "granted";
+        } else {
+          setPermission(notificationPermission);
+        }
+
+        if (notificationPermission) subscribeToNotifications();
+      });
     }
   }, [smartAccountSigner]);
-
-  useEffect(() => {
-    if (pushStream) {
-      const notificationPermission = Notification.permission === "granted";
-      setPermission(notificationPermission);
-      if (notificationPermission) subscribeToNotifications();
-    }
-  }, [pushStream]);
 
   const registerUser = async () => {
     try {
@@ -277,6 +280,7 @@ export default function AppPage() {
 
   const fetchNotificationStatus = async () => {
     try {
+      console.log("fetching");
       const pushAPIUser = await PushAPI.initialize(smartAccountSigner?.inner, {
         env: CONSTANTS.ENV.STAGING,
       });
@@ -290,6 +294,7 @@ export default function AppPage() {
       });
       console.log(process.env.NEXT_PUBLIC_CHANNEL_DELEGATE);
       if (!channel) {
+        console.log("here");
         await pushAPIUser.notification.subscribe(
           process.env.NEXT_PUBLIC_CHANNEL_ADDRESS as string
         );
