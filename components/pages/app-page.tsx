@@ -162,17 +162,18 @@ export default function AppPage() {
 
   useEffect(() => {
     if (smartAccountSigner) {
-      fetchNotificationStatus().then(async () => {
+      fetchNotificationStatus().then(async (stream) => {
         let notificationPermission = Notification.permission === "granted";
-
+        console.log("NOTIF STATUS", notificationPermission)
         if (!notificationPermission) {
+          console.log("REQUESTING")
           notificationPermission =
             (await Notification.requestPermission()) === "granted";
         } else {
           setPermission(notificationPermission);
         }
 
-        if (notificationPermission) subscribeToNotifications();
+        if (notificationPermission && stream) subscribeToNotifications(stream);
       });
     }
   }, [smartAccountSigner]);
@@ -246,15 +247,9 @@ export default function AppPage() {
     }
   };
 
-  const subscribeToNotifications = async () => {
-    if (pushStream) {
-      let notificationPermission = permission;
-      if (!notificationPermission) {
-        const result = await Notification.requestPermission();
-        notificationPermission = result === "granted";
-      }
-      if (notificationPermission) {
-        pushStream.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
+  const subscribeToNotifications = async (stream: PushStream) => {
+    if (stream) {
+      stream.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
           console.log(data);
           const { body, title } = data.message.notification;
           console.log(body, title);
@@ -263,18 +258,18 @@ export default function AppPage() {
           });
         });
 
-        pushStream.on(CONSTANTS.STREAM.CONNECT, () => {
+      stream.on(CONSTANTS.STREAM.CONNECT, () => {
           console.log("CONNECTED");
         });
 
-        pushStream.on(CONSTANTS.STREAM.DISCONNECT, () => {
+      stream.on(CONSTANTS.STREAM.DISCONNECT, () => {
           console.log("DISCONNECTED");
         });
 
-        await pushStream.connect();
+        await stream.connect();
 
         setPushStreamConnected(true);
-      }
+        setPushStream(stream)
     }
   };
 
@@ -314,6 +309,7 @@ export default function AppPage() {
       });
 
       setPushStream(stream);
+      return stream;
     } catch (error) {
       console.error(error);
     }

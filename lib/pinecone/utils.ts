@@ -25,15 +25,15 @@ export const generateProfileQueries = async (
             ? await getPostsByAuthors([farcasterFid as string, lensHandle as string].filter(Boolean), 100)
             : [];
     const poaps = await fetchPoaps(address);
-    const content = `Content Posted:\n${posts
+    const content = `Content Posted:\n${posts.slice(0,5)
         .map((p) => `Text: ${p.cleaned_text}\n`)
         .join('\n\n')}------\n\n${postReactions
-        .filter((p) => p.reaction === ReactionType.FIRE)
+        .filter((p) => p.reaction === ReactionType.FIRE).slice(0,5)
         .map((p) => p.cleanedText)
         .join('---')}------\n\n${postReactions
-        .filter((p) => p.reaction === ReactionType.LIKE)
+        .filter((p) => p.reaction === ReactionType.LIKE).slice(0,5)
         .map((p) => p.cleanedText)
-        .join('---')}\n\n------\n\nPOAPs Collected (aka event attended):\n${poaps
+        .join('---')}\n\n------\n\nPOAPs Collected (aka event attended):\n${poaps.slice(0,5)
         .map((p) => `Event Name: ${p.poapEvent.eventName}\n Event Description: ${p.poapEvent.description}`)
         .join('\n\n')}`;
     return queryOpenAI(content);
