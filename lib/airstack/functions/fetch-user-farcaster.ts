@@ -1,6 +1,5 @@
 import {gql} from "@apollo/client/core/index.js";
-import {fetchPoapsQuery} from "@/lib/airstack/functions/fetch-poaps";
-import {fetchQuery} from "@airstack/node";
+import {fetchQuery, init} from "@airstack/node";
 import {gqlToString} from "@/lib/airstack/utils";
 
 export const fetchUserFarcasterQuery = gql`
@@ -27,9 +26,11 @@ export interface FarcasterSocial {
 }
 
 export const fetchFarcasterUserAddress = async (fname: string): Promise<string> => {
+    init(process.env.AIRSTACK_API_KEY as string);
     const farcasterUserAddressResponse = await fetchQuery(
         gqlToString(fetchUserFarcasterQuery),
         { name: `fc_fname:${fname}` }
     );
-    return farcasterUserAddressResponse.data.Socials.Social[0].userAddress;
+    console.log(farcasterUserAddressResponse)
+    return farcasterUserAddressResponse.data?.Socials?.Social[0].userAddress;
 };
