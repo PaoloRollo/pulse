@@ -12,7 +12,7 @@ export const queryOpenAI = async (query: string) => {
         model: 'gpt-3.5-turbo',
         messages: [
             { role: 'system', content: 'You are a helpful assistant.' },
-            { role: 'user', content: userPrompt },
+            { role: 'user', content: userPrompt.substring(0,4096) },
         ],
         temperature: 0.8,
         max_tokens: 150,

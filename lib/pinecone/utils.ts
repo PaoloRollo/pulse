@@ -27,15 +27,15 @@ export const generateProfileQueries = async (
     const poaps = await fetchPoaps(address);
     const content = `Content Posted:\n${posts
         .map((p) => `Text: ${p.cleaned_text}\n`)
-        .join('\n\n')}------\n\nPOAPs Collected (aka event attended):\n${poaps
-        .map((p) => `Event Name: ${p.poapEvent.eventName}\n Event Description: ${p.poapEvent.description}`)
-        .join('\n\n')}------\n\nContent Like: ${postReactions
-        .filter((p) => p.reaction === ReactionType.LIKE)
-        .map((p) => p.cleanedText)
-        .join('---')}\n\nContent Super Liked: ${postReactions
+        .join('\n\n')}------\n\n${postReactions
         .filter((p) => p.reaction === ReactionType.FIRE)
         .map((p) => p.cleanedText)
-        .join('---')}\n\n`;
+        .join('---')}------\n\n${postReactions
+        .filter((p) => p.reaction === ReactionType.LIKE)
+        .map((p) => p.cleanedText)
+        .join('---')}\n\n------\n\nPOAPs Collected (aka event attended):\n${poaps
+        .map((p) => `Event Name: ${p.poapEvent.eventName}\n Event Description: ${p.poapEvent.description}`)
+        .join('\n\n')}`;
     return queryOpenAI(content);
 };
 
