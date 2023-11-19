@@ -9,10 +9,10 @@ export const queryOpenAI = async (query: string) => {
 
     // Generate topics using OpenAI API
     const response = await openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',
         messages: [
             { role: 'system', content: 'You are a helpful assistant.' },
-            { role: 'user', content: userPrompt },
+            { role: 'user', content: userPrompt.substring(0,4096) },
         ],
         temperature: 0.8,
         max_tokens: 150,
