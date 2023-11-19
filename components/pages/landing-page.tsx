@@ -12,7 +12,7 @@ export default function LandingPage() {
     },
   });
   return (
-    <main className="flex h-screen w-full bg-[radial-gradient(circle_at_bottom,_var(--tw-gradient-stops))] from-[#2CCCFF] to-[#001CAE] relative">
+    <main className="flex h-full w-full bg-[radial-gradient(circle_at_bottom,_var(--tw-gradient-stops))] from-[#2CCCFF] to-[#001CAE] relative">
       <Image
         src={"/home-logo.svg"}
         height={255}

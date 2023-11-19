@@ -17,8 +17,12 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/logo-pulse.png" sizes="any" />
       </head>
-      <body className={`overflow-x-hidden`}>
-        <Providers>{children}</Providers>
+      <body
+        className={`overflow-x-hidden h-screen w-screen flex items-center justify-center`}
+      >
+        <Providers>
+          <div className="max-w-[430px] w-full h-full">{children}</div>
+        </Providers>
       </body>
     </html>
   );

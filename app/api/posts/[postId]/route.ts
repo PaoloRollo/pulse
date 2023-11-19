@@ -1,12 +1,11 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import {Address, encodePacked, keccak256} from "viem";
+import { Address, encodePacked, keccak256 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { CONSTANTS, PushAPI } from "@pushprotocol/restapi";
 import { ethers } from "ethers";
-import {LensClient, production} from "@lens-protocol/client";
-import axios from "axios";
-import {fetchFarcasterUserAddress} from "@/lib/airstack/functions/fetch-user-farcaster";
+import { LensClient, production } from "@lens-protocol/client";
+import { fetchFarcasterUserAddress } from "@/lib/airstack/functions/fetch-user-farcaster";
 
 export async function POST(
   req: NextRequest,
@@ -48,7 +47,10 @@ export async function POST(
       supabase
         .from("unified_posts")
         .select("*")
-        .eq("content_id:unified_posts!inner(content_id,author_id, source)", postId)
+        .eq(
+          "content_id:unified_posts!inner(content_id,author_id, source)",
+          postId
+        )
         .single(),
       supabase
         .from("reactions")
@@ -61,14 +63,14 @@ export async function POST(
       let authorAddress: string;
       if (content.source === "Lens") {
         const lensClient = new LensClient({
-          environment: production
+          environment: production,
         });
         const profileById = await lensClient.profile.fetch({
           forProfileId: content.author_id,
-        })
+        });
         authorAddress = profileById?.ownedBy.address!;
       } else {
-        authorAddress = await fetchFarcasterUserAddress(content.author_id)
+        authorAddress = await fetchFarcasterUserAddress(content.author_id);
       }
       console.log(authorAddress);
       const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`);

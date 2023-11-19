@@ -11,7 +11,7 @@ import LoadingNavbar from "./loading-navbar";
 
 export default function LoadingAppPage() {
   return (
-    <div className="h-screen w-screen bg-[#EEF5FF]">
+    <div className="h-full w-full bg-[#EEF5FF]">
       <LoadingNavbar />
       <div className="flex items-center justify-center h-[500px]">
         <Skeleton loading={true}>

@@ -138,7 +138,7 @@ export default function ProfilePage({
 
   if (isLoading || loading) {
     return (
-      <div className="h-screen w-screen bg-[#EEF5FF]">
+      <div className="h-full w-full bg-[#EEF5FF]">
         <LoadingNavbar />
         <div className="p-8">
           <Skeleton loading>
@@ -151,7 +151,7 @@ export default function ProfilePage({
 
   return (
     <>
-      <div className="min-h-screen w-screen bg-[#EEF5FF]">
+      <div className="h-full w-full bg-[#EEF5FF]">
         <Navbar />
         <div className="p-8">
           <div className="h-[120px] w-[120px]">
@@ -216,9 +216,29 @@ export default function ProfilePage({
                   <Typography>{post.unified_posts.cleaned_text}</Typography>
                   <div className="flex items-center space-x-2">
                     {post.unified_posts.source === "Farcaster" ? (
-                      <img src="/see-on-farcaster.svg" className="h-5" />
+                      <img
+                        src="/see-on-farcaster.svg"
+                        className="h-5 cursor-pointer"
+                        onClick={() => {
+                          typeof window !== "undefined" &&
+                            window.open(
+                              `https://flink.fyi/${post.unified_posts.author_id}/${post.unified_posts.content_id}`,
+                              "_blank"
+                            );
+                        }}
+                      />
                     ) : (
-                      <img src="/see-on-lens.svg" className="h-5" />
+                      <img
+                        src="/see-on-lens.svg"
+                        className="h-5 cursor-pointer"
+                        onClick={() => {
+                          typeof window !== "undefined" &&
+                            window.open(
+                              `https://hey.xyz/posts/${post.unified_posts.content_id}`,
+                              "_blank"
+                            );
+                        }}
+                      />
                     )}
                     <p className="text-xs text-[#9B9BA7]">
                       {new Date(

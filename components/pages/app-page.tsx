@@ -140,7 +140,7 @@ export default function AppPage() {
   };
 
   useEffect(() => {
-    if (connectedWallet && smartAccountAddress) fetchPosts();
+    if (smartAccountAddress) fetchPosts();
   }, [connectedWallet, smartAccountAddress]);
 
   useEffect(() => {
@@ -323,7 +323,7 @@ export default function AppPage() {
 
   return (
     <>
-      <div className="h-screen w-screen bg-[#EEF5FF] overflow-hidden">
+      <div className="h-full w-full bg-[#EEF5FF] overflow-hidden">
         <Navbar />
         <div className="flex items-center justify-center h-[500px] overflow-hidden">
           {posts.map((post, index) => (
