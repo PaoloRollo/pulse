@@ -164,9 +164,9 @@ export default function AppPage() {
     if (smartAccountSigner) {
       fetchNotificationStatus().then(async (stream) => {
         let notificationPermission = Notification.permission === "granted";
-        console.log("NOTIF STATUS", notificationPermission)
+        console.log("NOTIF STATUS", notificationPermission);
         if (!notificationPermission) {
-          console.log("REQUESTING")
+          console.log("REQUESTING");
           notificationPermission =
             (await Notification.requestPermission()) === "granted";
         } else {
@@ -250,26 +250,26 @@ export default function AppPage() {
   const subscribeToNotifications = async (stream: PushStream) => {
     if (stream) {
       stream.on(CONSTANTS.STREAM.NOTIF, (data: any) => {
-          console.log(data);
-          const { body, title } = data.message.notification;
-          console.log(body, title);
-          const notification = new Notification(title, {
-            body: body,
-          });
+        console.log(data);
+        const { body, title } = data.message.notification;
+        console.log(body, title);
+        const notification = new Notification(title, {
+          body: body,
         });
+      });
 
       stream.on(CONSTANTS.STREAM.CONNECT, () => {
-          console.log("CONNECTED");
-        });
+        console.log("CONNECTED");
+      });
 
       stream.on(CONSTANTS.STREAM.DISCONNECT, () => {
-          console.log("DISCONNECTED");
-        });
+        console.log("DISCONNECTED");
+      });
 
-        await stream.connect();
+      await stream.connect();
 
-        setPushStreamConnected(true);
-        setPushStream(stream)
+      setPushStreamConnected(true);
+      setPushStream(stream);
     }
   };
 
@@ -353,7 +353,7 @@ export default function AppPage() {
             </TinderCard>
           ))}
         </div>
-        <div className="grid grid-cols-3 absolute bottom-16 left-1/2 -translate-x-1/2 gap-8 mx-auto w-[304px] ">
+        <div className="grid grid-cols-3 absolute bottom-12 left-1/2 -translate-x-1/2 gap-8 mx-auto w-[304px] ">
           <div className="h-[140px] flex flex-col justify-end items-center space-y-2">
             <Button
               // shadow
@@ -393,7 +393,7 @@ export default function AppPage() {
             <Typography color="blue">Like</Typography>
           </div>
         </div>
-        <div className="flex items-center justify-center absolute bottom-8 left-1/2 -translate-x-1/2">
+        <div className="flex items-center justify-center absolute bottom-6 left-1/2 -translate-x-1/2">
           <Button
             disabled={!canGoBack}
             colorStyle="background"

@@ -19,7 +19,7 @@ export default function LoadingAppPage() {
         </Skeleton>
       </div>
       <SkeletonGroup loading={true}>
-        <div className="grid grid-cols-3 absolute bottom-16 gap-8 left-1/2 -translate-x-1/2 w-[304px]">
+        <div className="grid grid-cols-3 absolute bottom-12 gap-8 left-1/2 -translate-x-1/2 w-[304px]">
           <div className="h-[140px] flex flex-col justify-end items-center space-y-2">
             <Skeleton>
               <Button
@@ -66,7 +66,7 @@ export default function LoadingAppPage() {
             </Skeleton>
           </div>
         </div>
-        <div className="flex items-center justify-center absolute bottom-8 left-1/2 -translate-x-1/2">
+        <div className="flex items-center justify-center absolute bottom-6 left-1/2 -translate-x-1/2">
           <Skeleton>
             <Button size="small" prefix={<CounterClockwiseArrowSVG />}>
               Undo

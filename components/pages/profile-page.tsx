@@ -72,7 +72,7 @@ export default function ProfilePage({
     undefined
   );
   const [currentData, setCurrentData] = useState<any>(null);
-  console.log(profileData)
+  console.log(profileData);
   // If the user is not authenticated, redirect them back to the landing page
   useEffect(() => {
     if (ready && !authenticated) {
@@ -141,11 +141,13 @@ export default function ProfilePage({
   return (
     <>
       <div className="h-full w-full bg-[#EEF5FF]">
-        <Navbar />
-        <div className="p-8">
-          <div className="h-[120px] w-[120px]">
+        <div className="fixed w-full max-w-[430px] z-50 bg-[#EEF5FF]">
+          <Navbar />
+        </div>
+        <div className="p-8 z-10">
+          <div className="h-[120px] w-[120px] mt-16">
             <Avatar
-              src={profileData?.Socials?.Social[1].profileImage}
+              src={profileData?.Socials?.Social[0].profileImage}
               label="Profile image"
             />
           </div>
