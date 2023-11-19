@@ -17,6 +17,7 @@
     "@apollo/client": "^3.8.7",
     "@ensdomains/thorin": "^0.6.42",
     "@ethereum-attestation-service/eas-contracts": "^1.3.1",
+    "@lens-protocol/client": "^2.0.0-alpha.21",
     "@openzeppelin/contracts": "^5.0.0",
     "@pinecone-database/pinecone": "^1.1.2",
     "@privy-io/react-auth": "^1.47.2",
