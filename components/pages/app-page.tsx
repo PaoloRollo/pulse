@@ -207,10 +207,13 @@ export default function AppPage() {
   };
 
   const fetchPosts = async () => {
+    console.log("WALLET", connectedWallet);
     setPageLoading(true);
     try {
       const response = await fetch(
-        `/api/posts?page=${page}&address=${smartAccountAddress}&walletAddress=${connectedWallet.address}`
+        `/api/posts?page=${page}&address=${smartAccountAddress}&walletAddress=${
+          connectedWallet?.address || smartAccountAddress
+        }`
       );
       const data = await response.json();
 
@@ -227,6 +230,7 @@ export default function AppPage() {
     const wallet = wallets.find(
       (wallet) => wallet.connectorType !== "embedded"
     );
+    console.log(wallets);
     if (wallet) {
       try {
         const ens = await publicClient.getEnsName({
